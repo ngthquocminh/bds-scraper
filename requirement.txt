@@ -1,0 +1,6 @@
+pika
+pandas
+bs4
+validators
+selenium
+elasticsearch
