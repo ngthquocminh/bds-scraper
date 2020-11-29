@@ -7,7 +7,7 @@ import urllib
 
 import validators
 import pandas as pd
-
+from slugify import slugify
 from time import time
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -44,9 +44,14 @@ class NhatTaoCrawler(CrawlHTML):
     TIMEOUT = 10
     BASE_URL = "https://nhattao.com"
     HTM = "htm"
-    NUM_URLS = 2
+    NUM_URLS = 3
     SAVE_TO_ES = True  # to save to ES -> True
     post_count = 0
+
+    get_soup_retry_times = 5
+
+    regex_sub_url = "f/[-a-z0-9]+[.][0-9]+/"
+    regex_post = "threads/[-a-z0-9]+[.][0-9]+/"
 
     CHROME_DRIVER = 'chrome-driver\\chromedriver.exe'
     HOME_PATH = os.path.abspath(os.getcwd())
@@ -59,7 +64,8 @@ class NhatTaoCrawler(CrawlHTML):
 
     headers = {
         'User-Agent':
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) '
+            'Chrome/35.0.1916.47 Safari/537.36 '
     }
 
     def __init__(self, given_list):
@@ -70,22 +76,26 @@ class NhatTaoCrawler(CrawlHTML):
         self.queue = []
         self.result = []
         self.html = []
+        self.parser = []
         self.es = Elasticsearch()
         print("init crawler")
-        self.work()
+        self.main()
 
     def set_connection(self, url):
         """
         Return Beautifulsoup object
         """
-        try:
-            request = urllib.request.Request(url, data=None, headers=self.headers)  # make web requests for URL
-            html = urllib.request.urlopen(request)
-            soup = BeautifulSoup(html, 'html.parser')
-            return soup
-        except:
-            print('Can not access this link !!!')
-            return None
+        for i in range(self.get_soup_retry_times):
+            try:
+                request = urllib.request.Request(url, data=None, headers=self.headers)  # make web requests for URL
+                html = urllib.request.urlopen(request)
+                soup = BeautifulSoup(html, 'html.parser')
+                return soup
+            except:
+                print('Re-obtain this link')
+
+        print('Can not access this link !!!')
+        return None
 
     def check_if_url_is_post(self, url):
         """
@@ -108,15 +118,16 @@ class NhatTaoCrawler(CrawlHTML):
             self.driver.set_page_load_timeout(self.TIMEOUT)
             return self.driver.page_source
         except:
-            print('Connot access this post-url !!!')
+            print('Can not access this post-url !!!')
             return None
 
-    def work(self):
+    def main(self):
+
         """
         Set driver
-        Step 1: Start with a queue of urls, retreive the first one
+        Step 1: Start with a queue of urls, retrieve the first one
         Step 2: Check this url is valid or not
-        Step 3: Set connection and retreive html of this url
+        Step 3: Set connection and retrieve html of this url
         Step 4: Extract all urls from the content of the origin url
         Step 5: Check every urls which have already extracted,
         - Case 1: if this url is post url, check if it exist in result or not and add to this list
@@ -125,8 +136,6 @@ class NhatTaoCrawler(CrawlHTML):
         Step 7: Check queue is empty or not come back to Step 1
         """
 
-        regex_sub_url = "f/[-a-z0-9]+[.][0-9]+/"
-        regex_post = "threads/[-a-z0-9]+[.][0-9]+/"
         local_urls = [self.BASE_URL]
         visited_post = []
         while local_urls:
@@ -142,37 +151,37 @@ class NhatTaoCrawler(CrawlHTML):
                 print("Num ", self.post_count)
             except:
                 pass
+
             soup = self.set_connection(url)
             if soup is None:
                 continue
 
-            if re.search(regex_post, url):
+            if re.search(self.regex_post, url):
                 self.post_count += 1
+                parser = slugify(soup.find_all("span", {"itemprop": "title"})[2].text).replace("-", "_")
                 if self.SAVE_TO_ES:
-                    self.save_to_elasticsearch(url, str(soup))
+                    self.save_to_elasticsearch(url, str(soup), parser)
                 else:
                     self.result.append(url)
+                    self.parser = parser
                     self.html.append(str(soup))
 
             for link in soup.find_all('a'):
                 anchor = str(link.get('href'))
-                if re.search(regex_post, anchor):
+                if re.search(self.regex_post, anchor):
                     if not self.check_url(anchor):
                         anchor = self.BASE_URL + ("/" if not anchor[0] == "/" else "") + anchor
                         # print("Anchor post", anchor)
                     if self.check_url(anchor):
                         local_urls.append(anchor)
                         # print("post ", anchor)
-                elif re.search(regex_sub_url, anchor):
+                elif re.search(self.regex_sub_url, anchor):
                     if not self.check_url(anchor):
                         anchor = self.BASE_URL + ("/" if not anchor[0] == "/" else "") + anchor
                         # print("Anchor url", anchor)
                     if self.check_url(anchor):
                         local_urls.append(anchor)
                         # print("url ", anchor)
-
-
-
 
             # may be higher because we set it here
             if self.post_count >= self.NUM_URLS:
@@ -185,12 +194,12 @@ class NhatTaoCrawler(CrawlHTML):
         """
         Save to csv, but it is not recommended
         """
-        dic = {"Links": self.result, "HTML": self.html}
+        dic = {"Links": self.result, "HTML": self.html, "Parser": self.parser}
         data = pd.DataFrame(dic)
         data.to_csv('post_urls_1.csv')
         print('TASK DONE')
 
-    def save_to_elasticsearch(self, url, html):
+    def save_to_elasticsearch(self, url, html, config):
         """
         Save page source to ElasticSearch
         """
@@ -199,7 +208,12 @@ class NhatTaoCrawler(CrawlHTML):
             doc = {
                 'url': url,
                 'document': str(html),
+                'parser_config': config,
                 'status': 1,
-                'crawledDate': datetime.now(),
+                'crawled_date': datetime.now(),
             }
-            self.es.index(index="urls", id=h, body=doc, doc_type='_doc')
+            try:
+                self.es.index(index="urls", id=h, body=doc, doc_type='_doc')
+            except:
+                e = sys.exc_info()[0]
+                print("Error: %s" % e)

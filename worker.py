@@ -24,7 +24,8 @@ from urllib.parse import urlparse
 from urllib.parse import urljoin
 from elasticsearch import Elasticsearch
 
-from nhat_tao import NhatTaoCrawler
+from nhat_tao_crawler import NhatTaoCrawler
+
 
 # def main():
 #     connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
@@ -42,9 +43,12 @@ from nhat_tao import NhatTaoCrawler
 #     channel.start_consuming()
 
 def start_crawling():
-    list_url = ["https://nhattao.com/threads/ban-dt-ss-galaxy-s9-plus-tim-ban-han.8996989/", "https://nhattao.com/"]
+    list_url = ["https://nhattao.com/"]
     crawler = NhatTaoCrawler(list_url)
 
+
+def html_parser(list_html):
+    pass
 
 
 start_crawling()

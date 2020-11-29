@@ -1,0 +1,4 @@
+id,url_regex,home_page
+chotot_config_general.csv,https://www.chotot.com.+,chotot.com
+chotot_config_xe.csv,https://xe.chotot.com.+,chotot.com
+chotot_config_bds.csv,https://nha.chotot.com.+,chotot.com
