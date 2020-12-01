@@ -1,4 +1,6 @@
 import re
+import sys
+
 import pandas as pd
 from bs4 import BeautifulSoup
 from elasticsearch import Elasticsearch
@@ -17,7 +19,7 @@ class NhatTaoParser(ParseHTML):
     @param result is the dictionary of post information which are retreived
     """
     MODEL_PATH = "config/"
-    POST_LIMIT = 2
+    POST_LIMIT = 7
     BASE_URL = "https://nhattao.com"
 
     def __init__(self, saved_name, name):
@@ -35,14 +37,18 @@ class NhatTaoParser(ParseHTML):
 
     def save_to_es(self, _id, doc):
         h = _id
+        print("Saving")
         if not self.es.exists(index=self.saved_name, id=h, doc_type='_doc'):
             doc = doc
+            print("Saved")
             self.es.index(index=self.saved_name, id=h, body=doc, doc_type='_doc')
 
     def read_config(self, config_model):
         try:
             return pd.read_csv(self.MODEL_PATH + config_model + ".csv").fillna('')
         except:
+            e = sys.exc_info()
+            print("Error: ", e)
             try:
                 return pd.read_csv(self.MODEL_PATH + "general.csv").fillna('')
             except:
@@ -61,6 +67,7 @@ class NhatTaoParser(ParseHTML):
         for post in posts:
             print('** POST NUMBER:', count)
             print('** POST ID:', post["_id"])
+            print('Post type:', post["_source"]["type"])
             print("Config: ", post["_source"]["parser_config"])
             print("Status: ", post["_source"]["status"])
 
@@ -83,7 +90,6 @@ class NhatTaoParser(ParseHTML):
                 attr = ''
                 if xpath != '':
                     attr_lst = tree.xpath(str(xpath))
-                    print(attr_lst)
                     if len(attr_lst) > 0:
                         if row['pos_take'] != '':
                             attr = attr_lst[int(row['pos_take'])]
@@ -100,9 +106,10 @@ class NhatTaoParser(ParseHTML):
                     attr = hashlib.md5((self.BASE_URL + "/" + attr).encode()).hexdigest()
                 doc['data_details'][feature] = attr.strip() if isinstance(attr, str) else attr
 
+            doc['data_details']["type"]=post["_source"]["type"]
             print(doc)
             self.result[post['_id']] = doc
-            # self.save_to_es(post['_id'], doc)
+            self.save_to_es(post['_id'], doc)
 
             count += 1
             if count >= self.POST_LIMIT:

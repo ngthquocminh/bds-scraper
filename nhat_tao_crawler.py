@@ -44,7 +44,7 @@ class NhatTaoCrawler(CrawlHTML):
     TIMEOUT = 10
     BASE_URL = "https://nhattao.com"
     HTM = "htm"
-    NUM_URLS = 3
+    NUM_URLS = 10
     SAVE_TO_ES = True  # to save to ES -> True
     post_count = 0
 
@@ -52,6 +52,7 @@ class NhatTaoCrawler(CrawlHTML):
 
     regex_sub_url = "f/[-a-z0-9]+[.][0-9]+/"
     regex_post = "threads/[-a-z0-9]+[.][0-9]+/"
+    regex_seller = "members/[-a-z0-9]+[.][0-9]+/"
 
     CHROME_DRIVER = 'chrome-driver\\chromedriver.exe'
     HOME_PATH = os.path.abspath(os.getcwd())
@@ -160,7 +161,14 @@ class NhatTaoCrawler(CrawlHTML):
                 self.post_count += 1
                 parser = slugify(soup.find_all("span", {"itemprop": "title"})[2].text).replace("-", "_")
                 if self.SAVE_TO_ES:
-                    self.save_to_elasticsearch(url, str(soup), parser)
+                    self.save_to_elasticsearch("item", url, str(soup), parser)
+                else:
+                    self.result.append(url)
+                    self.parser = parser
+                    self.html.append(str(soup))
+            elif re.search(self.regex_seller, url):
+                if self.SAVE_TO_ES:
+                    self.save_to_elasticsearch("seller", url, str(soup), "seller")
                 else:
                     self.result.append(url)
                     self.parser = parser
@@ -168,20 +176,15 @@ class NhatTaoCrawler(CrawlHTML):
 
             for link in soup.find_all('a'):
                 anchor = str(link.get('href'))
-                if re.search(self.regex_post, anchor):
+                if re.search(self.regex_post, anchor) \
+                        or re.search(self.regex_sub_url, anchor) \
+                        or re.search(self.regex_seller, anchor):
                     if not self.check_url(anchor):
                         anchor = self.BASE_URL + ("/" if not anchor[0] == "/" else "") + anchor
                         # print("Anchor post", anchor)
                     if self.check_url(anchor):
                         local_urls.append(anchor)
                         # print("post ", anchor)
-                elif re.search(self.regex_sub_url, anchor):
-                    if not self.check_url(anchor):
-                        anchor = self.BASE_URL + ("/" if not anchor[0] == "/" else "") + anchor
-                        # print("Anchor url", anchor)
-                    if self.check_url(anchor):
-                        local_urls.append(anchor)
-                        # print("url ", anchor)
 
             # may be higher because we set it here
             if self.post_count >= self.NUM_URLS:
@@ -199,13 +202,14 @@ class NhatTaoCrawler(CrawlHTML):
         data.to_csv('post_urls_1.csv')
         print('TASK DONE')
 
-    def save_to_elasticsearch(self, url, html, config):
+    def save_to_elasticsearch(self, _type, url, html, config):
         """
         Save page source to ElasticSearch
         """
         h = hashlib.md5(url.encode()).hexdigest()
         if not self.es.exists(index='urls', id=h, doc_type='_doc'):
             doc = {
+                'type': _type,
                 'url': url,
                 'document': str(html),
                 'parser_config': config,

@@ -1,0 +1,3 @@
+features,xpath,pos_take,regex_take,regex_take_bool,pos_take_regex
+name,//*[@id='content']/div/div/div/div/div/div[2]/div[1]/div/div[1]/div[2]/h1/span/text(),0,,0,
+address,//*[@id='content']/div/div/div/div/div/div[2]/div[1]/div/div[1]/div[2]/p/a/text(),0,,0,

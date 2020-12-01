@@ -57,5 +57,5 @@ class CrawlHTML(object):
         """
         pass
 
-    def save_to_elasticsearch(self, url, html):
+    def save_to_elasticsearch(self, _type, url, html):
         pass
