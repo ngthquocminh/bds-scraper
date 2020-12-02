@@ -10,6 +10,7 @@ from parse import ParseHTML
 from slugify import slugify
 import hashlib
 
+
 class NhatTaoParser(ParseHTML):
     """
     Retrieve information from HTML which is stored in elasticsearch
@@ -19,7 +20,7 @@ class NhatTaoParser(ParseHTML):
     @param result is the dictionary of post information which are retreived
     """
     MODEL_PATH = "config/"
-    POST_LIMIT = 7
+    POST_LIMIT = 100
     BASE_URL = "https://nhattao.com"
 
     def __init__(self, saved_name, name):
@@ -106,7 +107,7 @@ class NhatTaoParser(ParseHTML):
                     attr = hashlib.md5((self.BASE_URL + "/" + attr).encode()).hexdigest()
                 doc['data_details'][feature] = attr.strip() if isinstance(attr, str) else attr
 
-            doc['data_details']["type"]=post["_source"]["type"]
+            doc['data_details']["type"] = post["_source"]["type"]
             print(doc)
             self.result[post['_id']] = doc
             self.save_to_es(post['_id'], doc)

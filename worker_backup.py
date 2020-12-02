@@ -1,26 +1,13 @@
-import pika, sys, os
-import urllib.request
-from bs4 import BeautifulSoup
-from multiprocessing import Process
-import pandas as pd
-import bs4
-import multiprocessing
-
-import requests
-import urllib.request
-import shutil
-import csv
-import time
-
-import re
 import hashlib
-from bs4 import BeautifulSoup
-from selenium import webdriver
+import time
+import urllib.request
+import urllib.request
 from datetime import datetime
-from urllib.parse import urlsplit
-from urllib.parse import urlparse
-from urllib.parse import urljoin
-from elasticsearch import Elasticsearch
+
+import os
+import pika
+import sys
+from bs4 import BeautifulSoup
 
 headers = {
     'User-Agent':
