@@ -55,8 +55,8 @@ class NhatTaoCrawler(CrawlHTML):
     regex_post = "threads/[-a-z0-9]+[.][0-9]+/"
     regex_seller = "members/[-a-z0-9]+[.][0-9]+/"
 
-    CHROME_DRIVER = 'chrome-driver\\chromedriver.exe' \
-        if platform.system() == "Windows" else 'chrome-driver-linux\\chromedriver'
+    CHROME_DRIVER = '\\chrome-driver\\chromedriver.exe' \
+        if platform.system() == "Windows" else '/chrome-driver-linux/chromedriver'
     HOME_PATH = os.path.abspath(os.getcwd())
 
     chrome_options = Options()
@@ -73,7 +73,7 @@ class NhatTaoCrawler(CrawlHTML):
 
     def __init__(self, given_list):
         self.driver = webdriver.Chrome(
-            executable_path=self.HOME_PATH + "\\" + self.CHROME_DRIVER,
+            executable_path=self.HOME_PATH + self.CHROME_DRIVER,
             chrome_options=self.chrome_options)
 
         self.queue = []
