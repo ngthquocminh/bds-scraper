@@ -1,5 +1,6 @@
 import sys
 import os
+import platform
 import json
 import re
 import hashlib
@@ -54,7 +55,8 @@ class NhatTaoCrawler(CrawlHTML):
     regex_post = "threads/[-a-z0-9]+[.][0-9]+/"
     regex_seller = "members/[-a-z0-9]+[.][0-9]+/"
 
-    CHROME_DRIVER = 'chrome-driver\\chromedriver.exe'
+    CHROME_DRIVER = 'chrome-driver\\chromedriver.exe' \
+        if platform.system() == "Windows" else 'chrome-driver-linux\\chromedriver'
     HOME_PATH = os.path.abspath(os.getcwd())
 
     chrome_options = Options()
