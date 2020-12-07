@@ -55,12 +55,14 @@ class NhatTaoCrawler(CrawlHTML):
     regex_post = "threads/[-a-z0-9]+[.][0-9]+/"
     regex_seller = "members/[-a-z0-9]+[.][0-9]+/"
 
-    CHROME_DRIVER = '\\chrome-driver\\chromedriver.exe' \
-        if platform.system() == "Windows" else '/chrome-driver-linux/chromedriver'
+    CHROME_DRIVER = '\\chrome-driver\\chromedriver.exe'
     HOME_PATH = os.path.abspath(os.getcwd())
 
     chrome_options = Options()
     chrome_options.add_argument("--headless")  # hide popup
+    if platform.system() == "linux":
+        chrome_options.binary_location = '/usr/bin/google-chrome/google-chrome'
+        CHROME_DRIVER = '/chrome-driver-linux/chromedriver'
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument('--ignore-certificate-errors')
     chrome_options.add_argument('--incognito')
