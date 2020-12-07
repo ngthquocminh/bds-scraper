@@ -8,3 +8,4 @@ regex
 python-slugify
 lxml
 requests
+pika
