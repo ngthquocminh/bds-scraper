@@ -1,0 +1,6 @@
+features,xpath,pos_take,regex_take,regex_take_bool,pos_take_regex
+id,"//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/div/span/text()",0,,0,
+title,"/html/body/div[5]/div[1]/div/div[1]/div[1]/h1/text()",0,,0,
+price,"//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/span[1]/text()",0,,0,
+address,"//*[@id='ContentPlaceHolder1_ProductDetail1_divlocation']/text()",0,,0,
+phone,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[3]/div/div/a[1]/@href",0,[0-9]+,0,

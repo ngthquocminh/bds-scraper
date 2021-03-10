@@ -126,20 +126,6 @@ class BatDongSanCrawler(CrawlHTML):
             return None
 
     def main(self):
-
-        """
-        Set driver
-        Step 1: Start with a queue of urls, retrieve the first one
-        Step 2: Check this url is valid or not
-        Step 3: Set connection and retrieve html of this url
-        Step 4: Extract all urls from the content of the origin url
-        Step 5: Check every urls which have already extracted,
-        - Case 1: if this url is post url, check if it exist in result or not and add to this list
-        - Case 2: It is not post url, check if it exists in queue or not, add to queue
-        Step 6: Delete origin url and all checked urls
-        Step 7: Check queue is empty or not come back to Step 1
-        """
-
         local_urls = [self.BASE_URL]
         visited_post = []
         while local_urls:
@@ -201,7 +187,7 @@ class BatDongSanCrawler(CrawlHTML):
         """
         dic = {"Links": self.result, "Parser": self.parser}
         data = pd.DataFrame(dic)
-        data.to_csv('post_urls_1.csv')
+        data.to_csv('post_urls_1.csv', index=False)
         print('TASK DONE')
 
     def save_to_elasticsearch(self, _type, url, html, config):

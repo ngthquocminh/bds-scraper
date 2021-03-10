@@ -8,17 +8,13 @@ from lxml import html
 from os import listdir
 from parse import ParseHTML
 from slugify import slugify
+
 import hashlib
+import urllib
 
 
-class NhatTaoParser(ParseHTML):
-    """
-    Retrieve information from HTML which is stored in elasticsearch
-    @param name is the name of the HTML database
-    @param saved_name is the name of saved database
-    @param es is the ElasticSearch object
-    @param result is the dictionary of post information which are retreived
-    """
+class   BatDongSanParser(ParseHTML):
+
     MODEL_PATH = "config/"
     POST_LIMIT = 100
     BASE_URL = "https://nhadat247.com.vn/"
@@ -54,32 +50,54 @@ class NhatTaoParser(ParseHTML):
                 return pd.read_csv(self.MODEL_PATH + "general.csv").fillna('')
             except:
                 return None
+    
+    def get_html(self, url):
+        get_soup_retry_times = 4
+        for i in range(get_soup_retry_times):
+            # try:
+            request = urllib.request.Request(url, data=None, headers = {"User-Agent": "Mozilla/5.0"})  # make web requests for URL
+            html = urllib.request.urlopen(request).read()
+            return html
+            # except:
+            #     print('Re-obtain this link')
+
+        print('Can not access this link !!!')
+        return None 
+
+    def get_url(self): 
+        ""
+        df = pd.read_csv('post_urls_1.csv')
+        return df
 
     def main(self):
         """
         Retrieve necessary information for each document and save to elasticsearch
         """
-        _parse = self.connect_to_es()
+        _parse = self.get_url()
 
-        print('NUMBER OF POSTS:', _parse['hits']['total'])
-        posts = _parse['hits']['hits']
+        print('NUMBER OF POSTS: \n', _parse)
+        posts = _parse
 
         count = 1
-        for post in posts:
-            print('** POST NUMBER:', count)
-            print('** POST ID:', post["_id"])
-            print('Post type:', post["_source"]["type"])
-            print("Config: ", post["_source"]["parser_config"])
-            print("Status: ", post["_source"]["status"])
+        for index, post in posts.iterrows():
+            post_id = "NaN"
+            post_type = "NaN"
+            post_config = post["Parser"]
+            post_status = ""
+            print("** POST NUMBER : ", count)
+            print("** POST ID : ", post_id)
+            print("Post type : ", post_type)
+            print("Config: ", post_config)
+            print("Status: ", post_status)
 
-            model = self.read_config(post['_source']["parser_config"])
+            model = self.read_config(post_config)
             if model is None:
                 continue
 
             doc = dict()
 
-            doc['url'] = post['_source']['url']
-            page_source = post['_source']['document']
+            doc['url'] = post['Links']
+            page_source = self.get_html(post['Links'])
             tree = html.fromstring(page_source)
 
             doc['data_details'] = dict()
@@ -107,10 +125,10 @@ class NhatTaoParser(ParseHTML):
                     attr = hashlib.md5((self.BASE_URL + "/" + attr).encode()).hexdigest()
                 doc['data_details'][feature] = attr.strip() if isinstance(attr, str) else attr
 
-            doc['data_details']["type"] = post["_source"]["type"]
+            doc['data_details']["type"] = post_type
             print(doc)
-            self.result[post['_id']] = doc
-            self.save_to_es(post['_id'], doc)
+            self.result[post_id] = doc
+            # self.save_to_es(post['_id'], doc)
 
             count += 1
             if count >= self.POST_LIMIT:
@@ -119,5 +137,5 @@ class NhatTaoParser(ParseHTML):
         print('PARSING DONE')
 
 
-parse = NhatTaoParser('info', 'urls')
+parse = BatDongSanParser('info', 'urls')
 parse.main()
