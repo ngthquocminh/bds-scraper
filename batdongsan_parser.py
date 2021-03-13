@@ -8,6 +8,7 @@ from lxml import html
 from os import listdir
 from parse import ParseHTML
 from slugify import slugify
+import json
 
 import hashlib
 import urllib
@@ -64,10 +65,26 @@ class   BatDongSanParser(ParseHTML):
         print('Can not access this link !!!')
         return None 
 
+    def save_to_db(self):
+        f = open("data_parsed.json", "a")
+        f.write(json.dumps(self.result))
+        f.close()
+
     def get_url(self): 
         ""
         df = pd.read_csv('post_urls_1.csv')
         return df
+
+    def add_to_buffer(self, post, post_type):
+        ""
+        if post_type in self.result:
+            if type(self.result[post_type] != list):
+                self.result.pop('key', None)
+        else:
+            self.result[post_type] = []
+        
+        self.result[post_type].append(post)
+        
 
     def main(self):
         """
@@ -75,19 +92,20 @@ class   BatDongSanParser(ParseHTML):
         """
         _parse = self.get_url()
 
-        print('NUMBER OF POSTS: \n', _parse)
+        print('\nNUMBER OF POSTS: \n', _parse)
         posts = _parse
 
         count = 1
+
         for index, post in posts.iterrows():
-            post_id = "NaN"
-            post_type = "NaN"
+            post_url = post['Links']
             post_config = post["Parser"]
+            post_type = post["Type"]
             post_status = ""
             print("** POST NUMBER : ", count)
-            print("** POST ID : ", post_id)
-            print("Post type : ", post_type)
+            print("** POST url : ", post_url)
             print("Config: ", post_config)
+            print("Type: ", post_type)
             print("Status: ", post_status)
 
             model = self.read_config(post_config)
@@ -96,11 +114,10 @@ class   BatDongSanParser(ParseHTML):
 
             doc = dict()
 
-            doc['url'] = post['Links']
+            doc['post_url_hash'] = hashlib.md5(post_url.encode()).hexdigest()
             page_source = self.get_html(post['Links'])
             tree = html.fromstring(page_source)
 
-            doc['data_details'] = dict()
             for index, row in model.iterrows():
                 xpath = row["xpath"]
                 feature = row["features"]
@@ -120,20 +137,18 @@ class   BatDongSanParser(ParseHTML):
                     attr = re.search(str(row["regex_take"]), attr)
                     if attr:
                         attr = attr.group(0)
-                if feature == "seller_url":
-                    feature = "seller_id"
-                    attr = hashlib.md5((self.BASE_URL + "/" + attr).encode()).hexdigest()
-                doc['data_details'][feature] = attr.strip() if isinstance(attr, str) else attr
 
-            doc['data_details']["type"] = post_type
+                doc[feature] = attr.strip() if isinstance(attr, str) else attr
+
             print(doc)
-            self.result[post_id] = doc
+            self.add_to_buffer(doc, post_type)
             # self.save_to_es(post['_id'], doc)
 
             count += 1
             if count >= self.POST_LIMIT:
                 break
-
+        
+        self.save_to_db()
         print('PARSING DONE')
 
 

@@ -15,7 +15,6 @@ from datetime import datetime
 from urllib.parse import urlsplit
 from urllib.parse import urlparse
 from urllib.parse import urljoin
-from elasticsearch import Elasticsearch
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -34,26 +33,19 @@ from crawl import CrawlHTML
 
 class BatDongSanCrawler(CrawlHTML):
     """
-    Crawl HTML of given links and also crawl all
-    possible links which are not in given list
-    @param queue is the provided list which is sent to queue
-    @param result is list of all post links
-    @param post_count is the number of post urls
-    @param nonpost_count is the number of crawled non-post urls
-    @param es is the ElasticSearch object
     """
+    
     TIMEOUT = 10
     BASE_URL = "https://nhadat247.com.vn/"
     HTM = "htm"
-    NUM_URLS = 10
-    SAVE_TO_ES = False  # to save to ES -> True
+    NUM_URLS = 30
     post_count = 0
 
     get_soup_retry_times = 5
 
-    regex_sub_url = "[-a-z]((.html)|(/[0-9]+))?"
-    regex_post = "[-a-z0-9]+/[-a-z0-9]+pr[0-9]+.html"
-    regex_seller = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    regex_sub_url = "ban-[-a-z]((.html)|(/[0-9]+))?"
+    regex_post = "ban-[-a-z0-9]+/[-a-z0-9]+pr[0-9]+.html"
+    regex_seller = "ban-[-a-z0-9]+/[-a-z0-9]+pr[0-9]+.html"
 
     CHROME_DRIVER = '\\chrome-driver\\chromedriver.exe'
     HOME_PATH = os.path.abspath(os.getcwd())
@@ -81,7 +73,7 @@ class BatDongSanCrawler(CrawlHTML):
         self.queue = []
         self.result = []
         self.parser = []
-        self.es = Elasticsearch()
+        self.type = []
         print("init crawler")
         self.main()
 
@@ -148,18 +140,15 @@ class BatDongSanCrawler(CrawlHTML):
 
             if re.search(self.regex_post, url):
                 self.post_count += 1
-                parser = "nhadat247_com_vn"
-                if self.SAVE_TO_ES:
-                    self.save_to_elasticsearch("item", url, str(soup), parser)
-                else:
-                    self.result.append(url)
-                    self.parser = parser
-            elif re.search(self.regex_seller, url):
-                if self.SAVE_TO_ES:
-                    self.save_to_elasticsearch("seller", url, str(soup), "seller")
-                else:
-                    self.result.append(url)
-                    self.parser = parser
+                self.parser.append("post_nhadat247_com_vn")
+                self.type.append("post")              
+                self.result.append(url)
+
+            if re.search(self.regex_seller, url):
+                self.post_count += 1
+                self.parser.append("seller_nhadat247_com_vn")
+                self.type.append("seller") 
+                self.result.append(url)
 
             for link in soup.find_all('a'):
                 print(link)
@@ -179,33 +168,14 @@ class BatDongSanCrawler(CrawlHTML):
                 break
 
         print('CRAWLING DONE')
-        self.save_tocsv()
+        self.save_tocsv() 
 
     def save_tocsv(self):
         """
-        Save to csv, but it is not recommended
+        Save to csv
         """
-        dic = {"Links": self.result, "Parser": self.parser}
+        dic = {"Links": self.result, "Parser": self.parser, "Type": self.type}
         data = pd.DataFrame(dic)
         data.to_csv('post_urls_1.csv', index=False)
         print('TASK DONE')
 
-    def save_to_elasticsearch(self, _type, url, html, config):
-        """
-        Save page source to ElasticSearch
-        """
-        h = hashlib.md5(url.encode()).hexdigest()
-        if not self.es.exists(index='urls', id=h, doc_type='_doc'):
-            doc = {
-                'type': _type,
-                'url': url,
-                'document': str(html),
-                'parser_config': config,
-                'status': 1,
-                'crawled_date': datetime.now(),
-            }
-            try:
-                self.es.index(index="urls", id=h, body=doc, doc_type='_doc')
-            except:
-                e = sys.exc_info()[0]
-                print("Error: %s" % e)

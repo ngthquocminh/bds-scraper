@@ -3,5 +3,4 @@ id,"//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/div/span/text()",0,,0
 title,"/html/body/div[5]/div[1]/div/div[1]/div[1]/h1/text()",0,,0,
 price,"//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/span[1]/text()",0,,0,
 address,"//*[@id='ContentPlaceHolder1_ProductDetail1_divlocation']/descendant::*/text()",0,,0,
-phone,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[3]/div/div/a[1]/@href",0,[0-9]+,0,
-email,"//*[@id='tbl2']/tbody/tr[5]/td[2]/text()",0,,0,
+seller_phone,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[3]/div/div/a[1]/@href",0,[0-9]+,0,
