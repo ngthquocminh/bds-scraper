@@ -1,6 +1,9 @@
-features,xpath,pos_take,regex_take,regex_take_bool,pos_take_regex
-id,"//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/div/span/text()",0,,0,
-title,"/html/body/div[5]/div[1]/div/div[1]/div[1]/h1/text()",0,,0,
-price,"//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/span[1]/text()",0,,0,
-address,"//*[@id='ContentPlaceHolder1_ProductDetail1_divlocation']/descendant::*/text()",0,,0,
-seller_phone,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[3]/div/div/a[1]/@href",0,[0-9]+,0,
+features,xpath,pos_take,regex_take
+title,"/html/body/div[5]/div[1]/div/div[1]/div[1]/h1/text()",0,
+price,"//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/span[1]/text()",0,
+address,"//*[@id='ContentPlaceHolder1_ProductDetail1_divlocation']",,".*Khu vực:(.+?)<eof>"
+num_storey,"//*[@id='tbl1']/tbody/tr","Số tầng(.+?)<eof>",
+num_toilet,"//*[@id='tbl1']/tbody/tr","Số toilet(.+?)<eof>",
+num_room,"//*[@id='tbl1']/tbody/tr","Số phòng(.+?)<eof>",
+post_date,"//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/div",,"ID:.*\|(.+?)\|.*<eof>"
+seller_phone,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[3]/div/div/a[1]/@href",0,"tel:([0-9]+)<eof>"

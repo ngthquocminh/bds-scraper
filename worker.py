@@ -46,7 +46,7 @@ def start_crawling():
     # list_url = ["https://nhattao.com/"]
     # crawler = NhatTaoCrawler(list_url)
     list_url = []
-    crawler = BatDongSanCrawler(list_url)
+    crawler = BatDongSanCrawler("1/1/2021","27/4/2021", "nha")
 
 
 def html_parser(list_html):

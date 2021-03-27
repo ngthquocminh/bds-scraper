@@ -1,5 +1,6 @@
-features,xpath,pos_take,regex_take,regex_take_bool,pos_take_regex
-name,"//*[@id='tbl2']/tbody/tr[contains(., 'Tên liên hệ')]/text()",0,,0,
-address,"//*[@id='tbl2']/tbody/tr[3]/td[2]/descendant::*/text()",0,,0,
-emaill,"//*[@id='tbl2']/tbody/tr[5]/td[2]/descendant::*/text()",0,,0,
-phone,"//*[@id='tbl2']/tbody/tr[4]/td[2]/descendant::*/text()",0,[0-9]+,0,
+features,xpath,pos_take,regex_take
+name,"//*[@id='tbl2']/tr","Tên liên hệ:(.+?)<eof>",
+address,"//*[@id='tbl2']/tr","Địa chỉ:(.+?)<eof>",
+emaill,"//*[@id='tbl2']/tr","Email:(.+?)<eof>",
+phone,"//*[@id='tbl2']/tr","Điện thoại:(.+?)<eof>","tel:([0-9]+)<eof>"
+city,"//*[@id='tbl2']/tr","Địa chỉ:(.+?)<eof>",

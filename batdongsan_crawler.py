@@ -9,6 +9,7 @@ import urllib
 import validators
 import pandas as pd
 from slugify import slugify
+from datetime import datetime, date, timedelta
 from time import time
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -38,7 +39,7 @@ class BatDongSanCrawler(CrawlHTML):
     TIMEOUT = 10
     BASE_URL = "https://nhadat247.com.vn/"
     HTM = "htm"
-    NUM_URLS = 30
+    NUM_URLS = 5
     post_count = 0
 
     get_soup_retry_times = 5
@@ -65,7 +66,7 @@ class BatDongSanCrawler(CrawlHTML):
             'Chrome/35.0.1916.47 Safari/537.36 '
     }
 
-    def __init__(self, given_list):
+    def __init__(self, date_from, date_to, post_type):
         self.driver = webdriver.Chrome(
             executable_path=self.HOME_PATH + self.CHROME_DRIVER,
             chrome_options=self.chrome_options)
@@ -74,8 +75,14 @@ class BatDongSanCrawler(CrawlHTML):
         self.result = []
         self.parser = []
         self.type = []
+        self.post_type = post_type
+        self.status = []
+        
+        date_from = datetime.strptime(date_from, '%d/%m/%Y').date()
+        date_to = datetime.strptime(date_to, '%d/%m/%Y').date()
+
+        self.post_date = {"from":date_from, "to":date_to}
         print("init crawler")
-        self.main()
 
     def set_connection(self, url):
         """
@@ -105,6 +112,25 @@ class BatDongSanCrawler(CrawlHTML):
         """
         return validators.url(url)
 
+    def get_key_from_type(self, key):
+        if key == "nha":
+            return ["-nha"]
+        if key == "dat":
+            return ["-dat"]
+        if key == "can-ho/chung-cu":
+            return ["can-ho","chung-cu"]
+        
+        return ["-nha","-dat","can-ho","chung-cu"]
+
+    def check_type(self, url):
+        list_key = self.get_key_from_type(self.post_type)
+        for key in list_key:
+            if key in url:
+                # print("ok")
+                return True
+
+        return False
+
     def get_html(self, url):
         """
         Get HTML (page source) of a given url
@@ -117,7 +143,7 @@ class BatDongSanCrawler(CrawlHTML):
             print('Can not access this post-url !!!')
             return None
 
-    def main(self):
+    def obtainData(self, file_name):
         local_urls = [self.BASE_URL]
         visited_post = []
         while local_urls:
@@ -128,7 +154,7 @@ class BatDongSanCrawler(CrawlHTML):
             visited_post.append(url)
 
             try:
-                print('-' * 10, 'STARTING TO CONSIDER THE URL', '-' * 10)
+                # print('-' * 10, 'STARTING TO CONSIDER THE URL', '-' * 10)
                 print(" > ", url)
                 print("Num ", self.post_count)
             except:
@@ -139,43 +165,70 @@ class BatDongSanCrawler(CrawlHTML):
                 continue
 
             if re.search(self.regex_post, url):
-                self.post_count += 1
-                self.parser.append("post_nhadat247_com_vn")
-                self.type.append("post")              
-                self.result.append(url)
+                # print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+                _date = None
+                # print(soup.find("div",{"id":"ContentPlaceHolder1_ProductDetail1_divprice"}))
+                try:
+                    _date = soup.select_one("#ContentPlaceHolder1_ProductDetail1_divprice > div").get_text()
+                    _date = _date.split("|")[1].strip()
+                except:
+                    continue
 
-            if re.search(self.regex_seller, url):
+                if _date == "hôm kia":
+                    _date = date.today() - timedelta(days=2)
+                elif _date == "hôm qua":
+                    _date = date.today() - timedelta(days=1)
+                elif _date == "hôm nay":
+                    _date = date.today()                    
+                else:
+                    try:
+                        _date = datetime.strptime(_date, '%d/%m/%Y').date()
+                    except:
+                        continue
+     
+                # print(_date, " - ", self.post_date)
+                if _date >= self.post_date["from"] and _date <= self.post_date["to"]:
+                    self.post_count += 1
+                    self.parser.append("post_nhadat247_com_vn")
+                    self.type.append("post")
+                    self.status.append("0")             
+                    self.result.append(url)
+
+
+
+            if re.search(self.regex_seller, url) and self.post_type == "seller":
                 self.post_count += 1
                 self.parser.append("seller_nhadat247_com_vn")
                 self.type.append("seller") 
+                self.status.append("0")             
                 self.result.append(url)
 
             for link in soup.find_all('a'):
-                print(link)
+                # print(link)
                 anchor = str(link.get('href'))
                 if re.search(self.regex_post, anchor) \
                         or re.search(self.regex_sub_url, anchor) \
-                        or re.search(self.regex_seller, anchor):
+                        or (re.search(self.regex_seller, anchor) and self.post_type == "seller"):
                     if not self.check_url(anchor):
                         anchor = self.BASE_URL + ("/" if not anchor[0] == "/" else "") + anchor
                         # print("Anchor post", anchor)
-                    if self.check_url(anchor):
+                    if self.check_url(anchor) and self.check_type(anchor):
                         local_urls.append(anchor)
                         # print("post ", anchor)
-
+            
             # may be higher because we set it here
             if self.post_count >= self.NUM_URLS:
                 break
 
         print('CRAWLING DONE')
-        self.save_tocsv() 
+        self.save_tocsv(file_name) 
 
-    def save_tocsv(self):
+    def save_tocsv(self, file_name):
         """
         Save to csv
         """
-        dic = {"Links": self.result, "Parser": self.parser, "Type": self.type}
+        dic = {"Links": self.result, "Parser": self.parser, "Type": self.type, "Status": self.status}
         data = pd.DataFrame(dic)
-        data.to_csv('post_urls_1.csv', index=False)
+        data.to_csv(file_name+'.csv', index=False)
         print('TASK DONE')
 
