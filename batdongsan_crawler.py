@@ -49,7 +49,7 @@ class BatDongSanCrawler(CrawlHTML):
     regex_seller = "xxxxxxxxxxxxx" # "ban-[-a-z0-9]+/[-a-z0-9]+pr[0-9]+.html"
 
     CHROME_DRIVER = '\\chrome-driver\\chromedriver.exe'
-    HOME_PATH = ""# os.path.abspath(os.getcwd())
+    HOME_PATH = os.path.abspath(os.getcwd())
 
     chrome_options = Options()
     chrome_options.add_argument("--headless")  # hide popup
