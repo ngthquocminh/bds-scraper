@@ -39,9 +39,9 @@ class BatDongSanCrawler(CrawlHTML):
     TIMEOUT = 10
     BASE_URL = "https://nhadat247.com.vn/"
     HTM = "htm"
-    NUM_URLS = 5
+    NUM_URLS = 10
     post_count = 0
-
+    save_check_point = 4
     get_soup_retry_times = 5
 
     regex_sub_url = "ban-[-a-z]((.html)|(/[0-9]+))?"
@@ -218,6 +218,9 @@ class BatDongSanCrawler(CrawlHTML):
                         # print("post ", anchor)
             
             # may be higher because we set it here
+            if (len(self.result) >= self.save_check_point):
+                self.save_tocsv(file_name)
+
             if self.post_count >= self.NUM_URLS:
                 break
 
@@ -228,8 +231,24 @@ class BatDongSanCrawler(CrawlHTML):
         """
         Save to csv
         """
-        dic = {"Links": self.result, "Parser": self.parser, "Type": self.type, "Status": self.status}
-        data = pd.DataFrame(dic)
-        data.to_csv(file_name+'.csv', index=False)
+        file_name += ".csv"
+        from pathlib import Path
+
+        my_file = Path()
+        if my_file.is_file():
+            # file exists
+            with open('document.csv','a') as fd:
+                for index in range(len(self.result)):
+                    sv_writer = writer(fd)
+                    csv_writer.writerow([self.result[index], self.parser[index], self.type[index], self.status[index]])
+        else:
+            dic = {"Links": self.result, "Parser": self.parser, "Type": self.type, "Status": self.status}
+            data = pd.DataFrame(dic)
+            data.to_csv(file_name, index=False)
+
+        self.result = []
+        self.parser = []
+        self.type   = []
+        self.status = []
         print('TASK DONE')
 
