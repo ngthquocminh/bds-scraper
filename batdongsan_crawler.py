@@ -218,7 +218,7 @@ class BatDongSanCrawler(CrawlHTML):
                         # print("post ", anchor)
             
             # may be higher because we set it here
-            if (len(self.result) >= self.save_check_point):
+            if (len(self.result) == self.save_check_point):
                 self.save_tocsv(file_name)
 
             if self.post_count >= self.NUM_URLS:
@@ -231,17 +231,21 @@ class BatDongSanCrawler(CrawlHTML):
         """
         Save to csv
         """
+        print("Saving ... ", len(self.result))
         file_name += ".csv"
         from pathlib import Path
 
-        my_file = Path()
+        my_file = Path(file_name)
         if my_file.is_file():
             # file exists
-            with open('document.csv','a') as fd:
+            print("file exists")
+            with open(file_name,'a') as fd:
                 for index in range(len(self.result)):
                     sv_writer = writer(fd)
                     csv_writer.writerow([self.result[index], self.parser[index], self.type[index], self.status[index]])
+                fd.close()  
         else:
+            print("new file")
             dic = {"Links": self.result, "Parser": self.parser, "Type": self.type, "Status": self.status}
             data = pd.DataFrame(dic)
             data.to_csv(file_name, index=False)
