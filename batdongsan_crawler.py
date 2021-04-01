@@ -39,9 +39,9 @@ class BatDongSanCrawler(CrawlHTML):
     TIMEOUT = 10
     BASE_URL = "https://nhadat247.com.vn/"
     HTM = "htm"
-    NUM_URLS = 10
+    NUM_URLS = 10000
     post_count = 0
-    save_check_point = 4
+    save_check_point = 50
     get_soup_retry_times = 5
 
     regex_sub_url = "ban-[-a-z]((.html)|(/[0-9]+))?"
@@ -256,5 +256,5 @@ class BatDongSanCrawler(CrawlHTML):
         self.parser = []
         self.type   = []
         self.status = []
-        print('TASK DONE')
+
 
