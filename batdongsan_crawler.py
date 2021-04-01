@@ -46,7 +46,7 @@ class BatDongSanCrawler(CrawlHTML):
 
     regex_sub_url = "ban-[-a-z]((.html)|(/[0-9]+))?"
     regex_post = "ban-[-a-z0-9]+/[-a-z0-9]+pr[0-9]+.html"
-    regex_seller = "ban-[-a-z0-9]+/[-a-z0-9]+pr[0-9]+.html"
+    regex_seller = "xxxxxxxxxxxxx" # "ban-[-a-z0-9]+/[-a-z0-9]+pr[0-9]+.html"
 
     CHROME_DRIVER = '\\chrome-driver\\chromedriver.exe'
     HOME_PATH = os.path.abspath(os.getcwd())
