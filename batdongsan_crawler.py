@@ -149,7 +149,7 @@ class BatDongSanCrawler(CrawlHTML):
         visited_post = []
         while local_urls:
             url = local_urls.pop(0)
-            if url in self.result or url in visited_post:
+            if url in visited_post:
                 continue
 
             visited_post.append(url)
