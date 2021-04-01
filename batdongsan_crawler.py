@@ -232,8 +232,10 @@ class BatDongSanCrawler(CrawlHTML):
         Save to csv
         """
         print("Saving ... ", len(self.result))
-        file_name += ".csv"
         from pathlib import Path
+        from csv import writer
+
+        file_name += ".csv"
 
         my_file = Path(file_name)
         if my_file.is_file():
@@ -241,7 +243,7 @@ class BatDongSanCrawler(CrawlHTML):
             print("file exists")
             with open(file_name,'a') as fd:
                 for index in range(len(self.result)):
-                    sv_writer = writer(fd)
+                    csv_writer = writer(fd)
                     csv_writer.writerow([self.result[index], self.parser[index], self.type[index], self.status[index]])
                 fd.close()  
         else:
