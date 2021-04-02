@@ -55,7 +55,7 @@ from database import MongoDB
 class   BatDongSanParser(ParseHTML):
 
     MODEL_PATH = "config/"
-    POST_LIMIT = 100
+    POST_LIMIT = -1
     BASE_URL = "https://nhadat247.com.vn/"
 
     CHROME_DRIVER = '\\chrome-driver\\chromedriver.exe'
