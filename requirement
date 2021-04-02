@@ -9,3 +9,4 @@ python-slugify
 lxml
 requests
 pika
+pymongo
