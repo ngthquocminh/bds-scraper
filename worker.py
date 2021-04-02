@@ -24,23 +24,25 @@ from urllib.parse import urlparse
 from urllib.parse import urljoin
 from elasticsearch import Elasticsearch
 
-from nhat_tao_crawler import NhatTaoCrawler
+from batdongsan_parser import BatDongSanParser
 from batdongsan_crawler import BatDongSanCrawler
 
 
 
-def start_crawling():
-    list_url = []
-    
+def start_crawling():    
+    ""
     crawler = BatDongSanCrawler("1/1/2020","27/4/2021", "all")
     crawler.obtainData("post_urls_0")
 
 
-def html_parser(list_html):
-    pass
+def html_parser():
+    ""
+    parser = BatDongSanParser("post_urls_1", "data_parsed1")
+    parser.parseData(0)
 
 def main():
-    start_crawling()
+    # start_crawling()
+    html_parser()
 
 if __name__ == '__main__':
     try:

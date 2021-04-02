@@ -1,9 +1,16 @@
-features,xpath,pos_take,regex_take
-title,"/html/body/div[5]/div[1]/div/div[1]/div[1]/h1/text()",0,
-price,"//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/span[1]/text()",0,
-address,"//*[@id='ContentPlaceHolder1_ProductDetail1_divlocation']",,".*Khu vực:(.+?)<eof>"
-num_storey,"//*[@id='tbl1']/tbody/tr","Số tầng(.+?)<eof>",
-num_toilet,"//*[@id='tbl1']/tbody/tr","Số toilet(.+?)<eof>",
-num_room,"//*[@id='tbl1']/tbody/tr","Số phòng(.+?)<eof>",
-post_date,"//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/div",,"ID:.*\|(.+?)\|.*<eof>"
-seller_phone,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[3]/div/div/a[1]/@href",0,"tel:([0-9]+)<eof>"
+features,default,xpath,pos_take,regex_take
+homepage,"nhadat247.com.vn",,,
+title,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/h1/text()",0,
+category,,"//*[@id='tbl1']/tbody/tr","Loại tin rao(.+?)<eof>",
+description,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[3]/div",,
+region,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[1]/a[4]/text()",0,
+street,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[1]/a[1]",0,".+ Đường (.+)<eof>"
+district,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[1]/a[3]/text()",0,
+user,,"//*[@id='tbl2']/tr","Tên liên hệ:(.+?)<eof>",
+price,,"//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/span[1]/text()",0,
+address,,"//*[@id='ContentPlaceHolder1_ProductDetail1_divlocation']",,".*Khu vực:(.+?)<eof>"
+surface,,"//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/span[2]/text()",0,
+floor,,"//*[@id='tbl1']/tbody/tr","Số tầng(.+?)<eof>",
+room,,"//*[@id='tbl1']/tbody/tr","Số phòng(.+?)<eof>",
+date,,"//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/div",,"ID:.*\|(.+?)\|.*<eof>"
+phone,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[3]/div/div/a[1]/@href",0,"tel:([0-9]+)<eof>"
