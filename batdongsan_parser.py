@@ -297,7 +297,7 @@ class   BatDongSanParser(ParseHTML):
             # self.save_to_es(post['_id'], doc)
 
             count += 1
-            if count >= self.POST_LIMIT:
+            if self.POST_LIMIT > 0 and count >= self.POST_LIMIT :
                 break
         
         # self.save_to_db(self.name_save)
