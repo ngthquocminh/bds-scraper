@@ -4,7 +4,7 @@ title,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/h1/text()",0,
 category,,"//*[@id='tbl1']/tbody/tr","Loại tin rao(.+?)<eof>",
 description,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[3]/div",,
 region,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[1]/a[4]/text()",0,
-street,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[1]/a[1]",0,".+ Đường (.+)<eof>"
+street,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[1]/a[1]/text()",0,".+ Đường (.+)<eof>"
 district,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[1]/a[3]/text()",0,
 user,,"//*[@id='tbl2']/tr","Tên liên hệ:(.+?)<eof>",
 price,,"//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/span[1]/text()",0,
