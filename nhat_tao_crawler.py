@@ -61,7 +61,7 @@ class NhatTaoCrawler(CrawlHTML):
     chrome_options = Options()
     chrome_options.add_argument("--headless")  # hide popup
     if platform.system() == "Linux":
-        chrome_options.binary_location = '/usr/bin/google-chrome'
+        chrome_options.binary_location = '/usr/bin/chromium-browser'
         CHROME_DRIVER = '/chrome-driver-linux/chromedriver'
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument('--ignore-certificate-errors')
