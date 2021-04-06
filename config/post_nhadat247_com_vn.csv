@@ -2,7 +2,7 @@ features,default,xpath,pos_take,regex_take
 homepage,"nhadat247.com.vn",,,
 title,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/h1/text()",0,
 category,,"//*[@id='tbl1']/tbody/tr","Loại tin rao(.+?)<eof>",
-description,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[3]/div",,
+description,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[3]/div/text()",,
 region,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[1]/a[4]/text()",0,
 street,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[1]/a[1]/text()",0,".+ Đường (.+)<eof>"
 district,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[1]/a[3]/text()",0,
@@ -14,3 +14,4 @@ floor,,"//*[@id='tbl1']/tbody/tr","Số tầng(.+?)<eof>",
 room,,"//*[@id='tbl1']/tbody/tr","Số phòng(.+?)<eof>",
 date,,"//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/div",,"ID:.*\|(.+?)\|.*<eof>"
 phone,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[3]/div/div/a[1]/@href",0,"tel:([0-9]+)<eof>"
+front,,"//*[@id='tbl1']/tbody/tr","Mặt tiền(.+?)<eof>",
