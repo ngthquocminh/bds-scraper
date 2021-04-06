@@ -17,6 +17,8 @@ class MongoDB:
         return self.db
 
     def insert_to(self, jsonrow):
+        if jsonrow == None:
+            return
         result = self.db.ParsedData.insert_one(jsonrow)
         return result
 
