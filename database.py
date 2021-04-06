@@ -4,8 +4,9 @@ from pprint import pprint
 
 class MongoDB:
     
-    client = MongoClient("mongodb://synapselink:eVPegAamvOAeDBunQP63s0zcgFCIeqATZlCKpSL8xczE7KsRRt7nKoteatXZshyxkpxuaNi0IlBArbo5wUkgSQ%3D%3D@synapselink.mongo.cosmos.azure.com:10255/?authSource=admin&replicaSet=globaldb&maxIdleTimeMS=120000&readPreference=primary&appname=MongoDB%20Compass&retryWrites=false&ssl=true")
-    db=client.Data
+    client = MongoClient("mongodb://synapselynk:SaHj2L86s2pC0YvvAdV26u25M74RDhaWhUglTyRsuKa0xrcFdfh9y1RZkTZQX55F12bpd6Dc3WqlBWWcvCI32Q==@synapselynk.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&retrywrites=false&maxIdleTimeMS=120000&appName=@synapselynk@")
+    db=client.bds_database
+
 
     def __init__(self):
         ""
@@ -16,10 +17,10 @@ class MongoDB:
     def getdb(self):
         return self.db
 
-    def insert_to(self, jsonrow):
+    def insert_to(self, jsonrow = None):
         if jsonrow == None:
             return
-        result = self.db.ParsedData.insert_one(jsonrow)
+        result = self.db.parse_data_02.insert_one(jsonrow)
         return result
 
     def pprint(result):

@@ -2,7 +2,7 @@ import pymongo
 import re
 import json
 
-_re = lambda r, v, l: re.compile(r).search(str(v)) and len(str(v)) >= l
+_re = lambda r, v, l: re.compile(r).match(str(v)) and len(str(v)) >= l
 
 def check_validate(key, value):
     
@@ -39,8 +39,8 @@ def check_validate(key, value):
     if key == "address":
         return len(str(value)) >= 10
     
-    if key == "type":
-        return len(str(value)) >= 5
+    if key == "category":
+        return len(str(value)) >= 3
     
     if key == "description":
         return len(str(value)) >= 50
@@ -59,6 +59,8 @@ def changekey(key):
         return "rooms"
     if key == "floor":
         return "floors"    
+    if key == "category":
+        return "type"
     
     return key
     

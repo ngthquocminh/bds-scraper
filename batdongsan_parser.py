@@ -23,6 +23,7 @@ import json
 import re
 import hashlib
 import urllib
+import math
 
 import validators
 import pandas as pd
@@ -58,7 +59,7 @@ class   BatDongSanParser(ParseHTML):
 
     MODEL_PATH = "config/"
     
-    POST_LIMIT = 1000000
+    POST_LIMIT = -1
     BASE_URL = "https://nhadat247.com.vn/"
 
     CHROME_DRIVER = '\\chrome-driver\\chromedriver.exe'
@@ -86,18 +87,21 @@ class   BatDongSanParser(ParseHTML):
         self.driver = webdriver.Chrome(
             executable_path=self.HOME_PATH + self.CHROME_DRIVER,
             chrome_options=self.chrome_options)
-        
-        self.database = MongoDB()
-        
-        # self.save_to_db = self.database.insert_to
-        self.save_to_db = self.save_to_local
 
+        self.save_func = self.save_to_local
 
         self.name_get = name_get
         self.name_save = name_save
         self.es = Elasticsearch()
         self.save_buffer = []
 
+    def save_to_db(self, row = None):
+        if row == None:
+            return False
+        
+        self.save_func(row)
+        
+    
     def connect_to_es(self):
         return self.es.search(index=self.name_get, body={'size': 10000, "query": {"match_all": {}}})
 
@@ -142,9 +146,14 @@ class   BatDongSanParser(ParseHTML):
                 # print(e.__class__)
                 print('Re-obtain this link')
 
+    def set_save_to_mongodb(self):
+        database = MongoDB()        
+        self.save_func = database.insert_to
+
     def save_to_local(self, doc):
         ""
-        step_save = int(MAXIMUM * 50 / self.POST_LIMIT) * 5
+        x = self.POST_LIMIT
+        step_save = round(250 * x / math.sqrt(x**2 + 500000*x + 10000))
         if doc != None:   
             self.add_to_buffer(doc)
         else:
@@ -196,7 +205,7 @@ class   BatDongSanParser(ParseHTML):
         """
         _parse = self.get_url(self.name_get)
 
-        print('\nNUMBER OF POSTS: \n', _parse)
+        print("-"*20,'\nNUMBER OF POSTS: \n', _parse)
         posts = _parse
         
         count = 1
@@ -242,6 +251,7 @@ class   BatDongSanParser(ParseHTML):
             tree = etree.ElementTree(_html)
 
             detail = dict()
+            none_attr_count = 0
             for index, row in model.iterrows():
                 xpath = str(row["xpath"])
                 feature = row["features"]
@@ -272,11 +282,11 @@ class   BatDongSanParser(ParseHTML):
                                 attr = self.strip_text(_str)
 
                         else:
-                            print(">> full")
+                            # print(">> full")
                             if (isinstance(attr_lst[0], etree._Element)):
                                 for element in attr_lst:
                                     ele_str = self.strip_text(self.stringify_children(element))
-                                    print("->> ", ele_str)
+                                    # print("->> ", ele_str)
                                     attr += "" + ele_str
                             elif (isinstance(attr_lst[0], etree._ElementUnicodeResult)): 
                                 for element in attr_lst:
@@ -287,7 +297,7 @@ class   BatDongSanParser(ParseHTML):
                 if row["regex_take"] != '':
                     # print("Regex")
                     _attr = self.strip_text(attr) + "<eof>"
-                    print(_attr)
+                    # print(_attr)
                     
                     try:
                         _attr = re.search(str(row["regex_take"]), _attr)
@@ -297,12 +307,39 @@ class   BatDongSanParser(ParseHTML):
                         _attr = attr
                     # print(_attr)
                     attr = _attr
+                    
 
+                _rex = row["regex_valid"]
+                try:
+                    _rex = re.compile(_rex)
+                    if not _rex.search(attr):
+                        attr = None
+                except:
+                    ""
+                                  
+                
+                try:
+                    _len = int(row["len_valid"])
+                    if len(attr) < _len or "<eof>" in attr:
+                        attr = None
+                except:
+                    ""
+                
+                if attr == None:
+                    none_attr_count += 1
+                
                 detail[feature] = attr.strip() if isinstance(attr, str) else attr
+            
+            
+            if none_attr_count/len(detail) > 0.6:
+                print("{ Ignored }")
+                continue
+
             doc["detail"] = detail
             print(doc)
 
-            print(self.save_to_db(doc))
+            save_result = self.save_to_db(doc)
+            # print("Saved" , save_result)
 
             count += 1
             if self.POST_LIMIT > 0 and count >= self.POST_LIMIT :

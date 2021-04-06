@@ -38,7 +38,9 @@ def start_crawling():
 def html_parser():
     ""
     parser = BatDongSanParser("post_urls_0", "data_parsed1")
+    parser.set_save_to_mongodb()
     parser.parseData(0)
+
 
 def main():
     # start_crawling()
