@@ -52,10 +52,13 @@ LOGGER.setLevel(logging.WARNING)
 
 from database import MongoDB
 
+MAXIMUM = 10000000
+
 class   BatDongSanParser(ParseHTML):
 
     MODEL_PATH = "config/"
-    POST_LIMIT = -1
+    
+    POST_LIMIT = 1000000
     BASE_URL = "https://nhadat247.com.vn/"
 
     CHROME_DRIVER = '\\chrome-driver\\chromedriver.exe'
@@ -85,21 +88,24 @@ class   BatDongSanParser(ParseHTML):
             chrome_options=self.chrome_options)
         
         self.database = MongoDB()
-        self.save_to_db = self.database.insert_to
+        
+        # self.save_to_db = self.database.insert_to
+        self.save_to_db = self.save_to_local
+
 
         self.name_get = name_get
         self.name_save = name_save
         self.es = Elasticsearch()
-        self.result = dict()
+        self.save_buffer = []
 
     def connect_to_es(self):
         return self.es.search(index=self.name_get, body={'size': 10000, "query": {"match_all": {}}})
 
     def check_url(self, url):
-        pass
+        return True
 
-    def save_to_es(self, _id, doc):
-        h = _id
+    def save_to_es(self, doc):
+        h = doc["url_hash"]
         print("Saving")
         if not self.es.exists(index=self.name_save, id=h, doc_type='_doc'):
             doc = doc
@@ -136,11 +142,21 @@ class   BatDongSanParser(ParseHTML):
                 # print(e.__class__)
                 print('Re-obtain this link')
 
-    
+    def save_to_local(self, doc):
+        ""
+        step_save = int(MAXIMUM * 50 / self.POST_LIMIT) * 5
+        if doc != None:   
+            self.add_to_buffer(doc)
+        else:
+            step_save = len(self.save_buffer)
+        
+        if len(self.save_buffer) == step_save:
+            self.save_to_csv(self.name_save)
+            self.save_buffer = []
 
     def save_to_csv(self, name):
         f = open(name + ".json", "a")
-        f.write(json.dumps(self.result))
+        f.write(json.dumps(self.save_buffer))
         f.close()
 
     def get_url(self, name): 
@@ -148,15 +164,9 @@ class   BatDongSanParser(ParseHTML):
         df = pd.read_csv(name + '.csv')
         return df
 
-    def add_to_buffer(self, post, post_type):
+    def add_to_buffer(self, post):
         ""
-        if post_type in self.result:
-            if type(self.result[post_type] != list):
-                self.result.pop('key', None)
-        else:
-            self.result[post_type] = []
-        
-        self.result[post_type].append(post)
+        self.save_buffer.append(post)
         
     def stringify_children(self, node):
         # _list = []
@@ -293,12 +303,13 @@ class   BatDongSanParser(ParseHTML):
             print(doc)
 
             print(self.save_to_db(doc))
-            # self.add_to_buffer(doc, post_type)
-            # self.save_to_es(post['_id'], doc)
 
             count += 1
             if self.POST_LIMIT > 0 and count >= self.POST_LIMIT :
                 break
         
-        # self.save_to_db(self.name_save)
+        self.finishing_up()
+
+    def finishing_up(self):
+        self.save_to_db()
         print('PARSING DONE')
