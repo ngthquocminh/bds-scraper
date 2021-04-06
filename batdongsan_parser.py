@@ -49,16 +49,48 @@ from selenium.webdriver import ActionChains
 
 import logging
 from selenium.webdriver.remote.remote_connection import LOGGER
+
 LOGGER.setLevel(logging.WARNING)
 
 from database import MongoDB
 
 MAXIMUM = 10000000
 
-class   BatDongSanParser(ParseHTML):
 
+def strip_text(text):
+    return text.replace("\t", "").replace("\n", "").strip()
+
+
+def get_html(url):
+    get_soup_retry_times = 4
+    for i in range(get_soup_retry_times):
+        try:
+            request = urllib.request.Request(url, data=None,
+                                             headers={"User-Agent": "Mozilla/5.0"})  # make web requests for URL
+            request = urllib.request.urlopen(request)
+            html = request.read().decode("utf8")
+
+            request.close()
+            return html
+
+            # self.driver.get(url)
+            # self.driver.set_page_load_timeout(5)
+            # return self.driver.page_source
+
+        except Exception as e:
+            # print(e.__class__)
+            print('Re-obtain this link')
+
+
+def get_url(name):
+    ""
+    df = pd.read_csv(name + '.csv')
+    return df
+
+
+class BatDongSanParser(ParseHTML):
     MODEL_PATH = "config/"
-    
+
     POST_LIMIT = -1
     BASE_URL = "https://nhadat247.com.vn/"
 
@@ -81,9 +113,8 @@ class   BatDongSanParser(ParseHTML):
             'Chrome/35.0.1916.47 Safari/537.36 '
     }
 
-
     def __init__(self, name_get, name_save):
-        
+
         self.driver = webdriver.Chrome(
             executable_path=self.HOME_PATH + self.CHROME_DRIVER,
             chrome_options=self.chrome_options)
@@ -95,13 +126,12 @@ class   BatDongSanParser(ParseHTML):
         self.es = Elasticsearch()
         self.save_buffer = []
 
-    def save_to_db(self, row = None):
-        if row == None:
+    def save_to_db(self, row=None):
+        if row is None:
             return False
-        
+
         self.save_func(row)
-        
-    
+
     def connect_to_es(self):
         return self.es.search(index=self.name_get, body={'size': 10000, "query": {"match_all": {}}})
 
@@ -126,39 +156,20 @@ class   BatDongSanParser(ParseHTML):
                 return pd.read_csv(self.MODEL_PATH + "general.csv").fillna('')
             except:
                 return None
-    
-    def get_html(self, url):
-        get_soup_retry_times = 4
-        for i in range(get_soup_retry_times):
-            try:
-                request = urllib.request.Request(url, data=None, headers = {"User-Agent": "Mozilla/5.0"})  # make web requests for URL
-                request = urllib.request.urlopen(request)
-                html = request.read().decode("utf8")
-
-                request.close()
-                return html
-
-                # self.driver.get(url)
-                # self.driver.set_page_load_timeout(5)
-                # return self.driver.page_source
-
-            except Exception as e:
-                # print(e.__class__)
-                print('Re-obtain this link')
 
     def set_save_to_mongodb(self):
-        database = MongoDB()        
+        database = MongoDB()
         self.save_func = database.insert_to
 
     def save_to_local(self, doc):
         ""
         x = self.POST_LIMIT
-        step_save = round(250 * x / math.sqrt(x**2 + 500000*x + 10000))
-        if doc != None:   
+        step_save = round(250 * x / math.sqrt(x ** 2 + 500000 * x + 10000))
+        if doc is not None:
             self.add_to_buffer(doc)
         else:
             step_save = len(self.save_buffer)
-        
+
         if len(self.save_buffer) == step_save:
             self.save_to_csv(self.name_save)
             self.save_buffer = []
@@ -168,15 +179,10 @@ class   BatDongSanParser(ParseHTML):
         f.write(json.dumps(self.save_buffer))
         f.close()
 
-    def get_url(self, name): 
-        ""
-        df = pd.read_csv(name + '.csv')
-        return df
-
     def add_to_buffer(self, post):
         ""
         self.save_buffer.append(post)
-        
+
     def stringify_children(self, node):
         # _list = []
         # for c in node.getchildren():
@@ -190,24 +196,20 @@ class   BatDongSanParser(ParseHTML):
         from lxml.etree import tostring
         from itertools import chain
         parts = ([node.text] +
-                list(chain(*(self.stringify_children(c) for c in node.getchildren()))) +
-                [node.tail])
+                 list(chain(*(self.stringify_children(c) for c in node.getchildren()))) +
+                 [node.tail])
         # filter removes possible Nones in texts and tails
         return ''.join(filter(None, parts))
-    
-    def strip_text(self, text):
-
-        return text.replace("\t", "").replace("\n", "").strip()
 
     def parseData(self, status_parse):
         """
         Retrieve necessary information for each document and save to elasticsearch
         """
-        _parse = self.get_url(self.name_get)
+        _parse = get_url(self.name_get)
 
-        print("-"*20,'\nNUMBER OF POSTS: \n', _parse)
+        print("-" * 20, '\nNUMBER OF POSTS: \n', _parse)
         posts = _parse
-        
+
         count = 1
 
         for index, post in posts.iterrows():
@@ -220,7 +222,7 @@ class   BatDongSanParser(ParseHTML):
             print("Config: ", post_config)
             print("Type: ", post_type)
             print("Status: ", post_status)
-            if (int(post_status) != int(status_parse)):
+            if int(post_status) != int(status_parse):
                 continue
 
             model = self.read_config(post_config)
@@ -230,21 +232,21 @@ class   BatDongSanParser(ParseHTML):
             doc = dict()
 
             doc["url_hash"] = hashlib.md5(post_url.encode()).hexdigest()
-            doc["url"]      = post_url
-            
+            doc["url"] = post_url
+
             try:
                 doc["crawl_date"] = post["Date"]
             except:
                 doc["crawl_date"] = date.today().strftime("%d/%m/%Y")
 
             doc["parse_date"] = date.today().strftime("%d/%m/%Y")
-            doc["status"]     = int(post["Status"]) + 1
+            doc["status"] = int(post["Status"]) + 1
 
-            page_source = self.get_html(post['Links'])
+            page_source = get_html(post['Links'])
 
             page_source = re.sub("(<!--.*?-->)", "", page_source, flags=re.DOTALL)
             page_source = re.sub("(<script.*?>.*?</script>)", "", page_source, flags=re.DOTALL)
-            page_source = re.sub(" +", " ", page_source, flags=re.DOTALL)    
+            page_source = re.sub(" +", " ", page_source, flags=re.DOTALL)
             page_source = re.sub("(<style.*?>.*?</style>)", "", page_source, flags=re.DOTALL)
 
             _html = html.fromstring(page_source)
@@ -264,31 +266,31 @@ class   BatDongSanParser(ParseHTML):
                         if row['pos_take'] != '':
                             try:
                                 _take = attr_lst[int(row['pos_take'])]
-                                if (isinstance(_take, etree._Element)):
+                                if isinstance(_take, etree._Element):
                                     attr = self.stringify_children(_take)
-                                elif (isinstance(_take, etree._ElementUnicodeResult)): 
+                                elif isinstance(_take, etree._ElementUnicodeResult):
                                     attr = _take
-                            except ValueError:                                
+                            except ValueError:
                                 position_regex = row['pos_take']
                                 _str = ""
                                 for element in attr_lst:
-                                    _str = self.strip_text(self.stringify_children(element)) + "<eof>"
+                                    _str = strip_text(self.stringify_children(element)) + "<eof>"
                                     # print("->> ", _str)
-                                    match = re.search(position_regex,_str)
+                                    match = re.search(position_regex, _str)
                                     if match:
                                         _str = match.group(1)
                                         # print(">> ", _str)
                                         break
-                                attr = self.strip_text(_str)
+                                attr = strip_text(_str)
 
                         else:
                             # print(">> full")
-                            if (isinstance(attr_lst[0], etree._Element)):
+                            if isinstance(attr_lst[0], etree._Element):
                                 for element in attr_lst:
-                                    ele_str = self.strip_text(self.stringify_children(element))
+                                    ele_str = strip_text(self.stringify_children(element))
                                     # print("->> ", ele_str)
                                     attr += "" + ele_str
-                            elif (isinstance(attr_lst[0], etree._ElementUnicodeResult)): 
+                            elif isinstance(attr_lst[0], etree._ElementUnicodeResult):
                                 for element in attr_lst:
                                     attr += "" + element.text_content()
 
@@ -296,9 +298,9 @@ class   BatDongSanParser(ParseHTML):
 
                 if row["regex_take"] != '':
                     # print("Regex")
-                    _attr = self.strip_text(attr) + "<eof>"
+                    _attr = strip_text(attr) + "<eof>"
                     # print(_attr)
-                    
+
                     try:
                         _attr = re.search(str(row["regex_take"]), _attr)
                         if _attr:
@@ -307,7 +309,6 @@ class   BatDongSanParser(ParseHTML):
                         _attr = attr
                     # print(_attr)
                     attr = _attr
-                    
 
                 _rex = row["regex_valid"]
                 try:
@@ -316,22 +317,20 @@ class   BatDongSanParser(ParseHTML):
                         attr = None
                 except:
                     ""
-                                  
-                
+
                 try:
                     _len = int(row["len_valid"])
                     if len(attr) < _len or "<eof>" in attr:
                         attr = None
                 except:
                     ""
-                
-                if attr == None:
+
+                if attr is None:
                     none_attr_count += 1
-                
+
                 detail[feature] = attr.strip() if isinstance(attr, str) else attr
-            
-            
-            if none_attr_count/len(detail) > 0.6:
+
+            if none_attr_count / len(detail) > 0.6:
                 print("{ Ignored }")
                 continue
 
@@ -342,9 +341,9 @@ class   BatDongSanParser(ParseHTML):
             # print("Saved" , save_result)
 
             count += 1
-            if self.POST_LIMIT > 0 and count >= self.POST_LIMIT :
+            if 0 < self.POST_LIMIT <= count:
                 break
-        
+
         self.finishing_up()
 
     def finishing_up(self):
