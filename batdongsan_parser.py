@@ -119,7 +119,8 @@ class BatDongSanParser(ParseHTML):
             executable_path=self.HOME_PATH + self.CHROME_DRIVER,
             chrome_options=self.chrome_options)
 
-        self.save_func = self.save_to_local
+        self.save_func = self.save
+        _to_local
 
         self.name_get = name_get
         self.name_save = name_save
