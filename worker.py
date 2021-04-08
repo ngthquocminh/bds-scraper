@@ -28,23 +28,23 @@ from batdongsan_parser import BatDongSanParser
 from batdongsan_crawler import BatDongSanCrawler
 
 
-
-def start_crawling():    
+def start_crawling():
     ""
-    crawler = BatDongSanCrawler("1/1/2020","27/4/2021", "all")
+    crawler = BatDongSanCrawler("1/1/2020", "27/4/2021", "all")
     crawler.obtainData("post_urls_0")
 
 
 def html_parser():
     ""
-    parser = BatDongSanParser("post_urls_0", "data_parsed1")
-    parser.set_save_to_mongodb()
+    parser = BatDongSanParser("post_urls_0", "data_parsed0")
+    # parser.set_save_to_database()
     parser.parseData(0)
 
 
 def main():
     # start_crawling()
     html_parser()
+
 
 if __name__ == '__main__':
     try:

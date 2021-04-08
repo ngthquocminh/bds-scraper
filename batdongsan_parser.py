@@ -52,7 +52,7 @@ from selenium.webdriver.remote.remote_connection import LOGGER
 
 LOGGER.setLevel(logging.WARNING)
 
-from database import MongoDB
+from database import save_to
 
 MAXIMUM = 10000000
 
@@ -91,7 +91,7 @@ def get_url(name):
 class BatDongSanParser(ParseHTML):
     MODEL_PATH = "config/"
 
-    POST_LIMIT = -1
+    POST_LIMIT = 1100
     BASE_URL = "https://nhadat247.com.vn/"
 
     CHROME_DRIVER = '\\chrome-driver\\chromedriver.exe'
@@ -119,8 +119,7 @@ class BatDongSanParser(ParseHTML):
             executable_path=self.HOME_PATH + self.CHROME_DRIVER,
             chrome_options=self.chrome_options)
 
-        self.save_func = self.save
-        _to_local
+        self.save_func = self.save_to_local
 
         self.name_get = name_get
         self.name_save = name_save
@@ -158,9 +157,8 @@ class BatDongSanParser(ParseHTML):
             except:
                 return None
 
-    def set_save_to_mongodb(self):
-        database = MongoDB()
-        self.save_func = database.insert_to
+    def set_save_to_database(self):
+        self.save_func = save_to
 
     def save_to_local(self, doc):
         ""
@@ -177,7 +175,8 @@ class BatDongSanParser(ParseHTML):
 
     def save_to_csv(self, name):
         f = open(name + ".json", "a")
-        f.write(json.dumps(self.save_buffer))
+        for post in self.save_buffer:
+            f.write(json.dumps(post) + "\n")
         f.close()
 
     def add_to_buffer(self, post):
@@ -290,10 +289,10 @@ class BatDongSanParser(ParseHTML):
                                 for element in attr_lst:
                                     ele_str = strip_text(self.stringify_children(element))
                                     # print("->> ", ele_str)
-                                    attr += "" + ele_str
+                                    attr += " " + ele_str
                             elif isinstance(attr_lst[0], etree._ElementUnicodeResult):
                                 for element in attr_lst:
-                                    attr += "" + element.text_content()
+                                    attr += " " + element.text_content()
 
                 # print(" >>>>> ", attr)
 

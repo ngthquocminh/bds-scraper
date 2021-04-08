@@ -261,7 +261,10 @@ class BatDongSanCrawler(CrawlHTML):
                 fd.close()
         else:
             print("new file")
-            dic = {"Links": self.result, "Parser": self.parser, "Type": self.ptype, "Status": self.status,
+            dic = {"Links": self.result,
+                   "Parser": self.parser,
+                   "Type": self.ptype,
+                   "Status": self.status,
                    "Date": self.crawl_date}
             data = pd.DataFrame(dic)
             data.to_csv(file_name, index=False)
