@@ -16,6 +16,7 @@ from datetime import datetime
 from urllib.parse import urlsplit
 from urllib.parse import urlparse
 from urllib.parse import urljoin
+import requests
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -46,8 +47,8 @@ class BatDongSanCrawler(CrawlHTML):
     """
     """
 
-    TIMEOUT = 20
-    BASE_URL = "https://nhadat247.com.vn"
+    TIMEOUT = 6
+    BASE_URL = "https://batdongsan.com.vn/"
     
     HTM = "htm"
     NUM_URLS = 30000
@@ -55,16 +56,11 @@ class BatDongSanCrawler(CrawlHTML):
     save_check_point = 10
     get_soup_retry_times = 5
 
-    valid_url = re.compile("https[:][/][/]nhadat247[\.]com.vn.*")
-    regex_sub_url = re.compile("([a-z][-a-z]*)?ban-[-a-z]+((.html)|(/[0-9]+))?")
-    regex_post = re.compile("([a-z][-a-z]*)?ban-[-a-z0-9]+/[-a-z0-9]+pr[0-9]+.html")
-    regex_seller = re.compile("xxxxxxxxxxxxx")  # "ban-[-a-z0-9]+/[-a-z0-9]+pr[0-9]+.html"
-
     CHROME_DRIVER = '\\chrome-driver\\chromedriver.exe'
     HOME_PATH = os.path.abspath(os.getcwd())
 
     chrome_options = Options()
-    chrome_options.add_argument("--headless")  # hide popup
+    # chrome_options.add_argument("--headless")  # hide popup
     if platform.system() == "Linux":
         print("Linux chrome")
         chrome_options.binary_location = '/usr/bin/chromium-browser'
@@ -80,6 +76,10 @@ class BatDongSanCrawler(CrawlHTML):
     }
 
     def __init__(self, url: list, date_from, date_to, post_type):
+        self.driver = webdriver.Chrome(
+            executable_path=self.HOME_PATH + self.CHROME_DRIVER,
+            chrome_options=self.chrome_options)
+
 
         self.queue = []
         self.result = []
@@ -90,6 +90,10 @@ class BatDongSanCrawler(CrawlHTML):
         self.crawl_date = []
         self.buffer = None
         self.seed_url = url
+    
+        # self.valid_url = re.compile("https[:][/][/]batdongsan[\.]com[\.]vn.+")
+        self.regex_sub_url = re.compile("https[:][/][/]batdongsan[\.]com[\.]vn/ban-[a-z][-a-z]+(/p[0-9]+)?")
+        self.regex_post = re.compile("https[:][/][/]batdongsan[\.]com[\.]vn/ban-[a-z][-a-z]+/[-a-z0-9]+pr[0-9]+")
 
         date_from = datetime.strptime(date_from, '%d/%m/%Y').date()
         date_to = datetime.strptime(date_to, '%d/%m/%Y').date()
@@ -103,8 +107,7 @@ class BatDongSanCrawler(CrawlHTML):
         """
         for i in range(self.get_soup_retry_times):
             try:
-                request = urllib.request.Request(url, data=None,
-                                                 headers={"User-Agent": "Mozilla/5.0"})  # make web requests for URL
+                request = urllib.request.Request(url, data=None, headers=self.headers)
                 html = urllib.request.urlopen(request).read()
                 soup = BeautifulSoup(html, 'html.parser')
                 return soup
@@ -114,27 +117,15 @@ class BatDongSanCrawler(CrawlHTML):
         print('Can not access this link !!!')
         return None
 
-    def check_if_url_is_post(self, url):
-        """
-        Check whether an url is post url (the last level url) or not
-        """
-        pass
-
-    def check_url(self, url):
-        """
-        Check whether an url is valid or not
-        """
-        return validators.url(url)
-
     def get_key_from_type(self, key):
         if key == "nha":
             return ["-nha"]
         if key == "dat":
             return ["-dat"]
         if key in ["canho","chungcu"]:
-            return ["can-ho", "chung-cu"]
+            return ["can-ho-chung-cu"]
 
-        return ["-nha", "-dat", "can-ho", "chung-cu"]
+        return ["-nha-", "-dat", "-can-ho-chung-cu"]
 
     def check_type(self, url):
         list_key = self.get_key_from_type(self.post_type)
@@ -149,16 +140,19 @@ class BatDongSanCrawler(CrawlHTML):
         """
         Get HTML (page source) of a given url
         """
-
         for i in range(self.get_soup_retry_times):
             try:
-                request = urllib.request.Request(url, data=None,
-                                                 headers={"User-Agent": "Mozilla/5.0"})  # make web requests for URL
-                html = urllib.request.urlopen(request).read()
-                return html
+                self.driver.get(url)
+
+                element_present = EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/footer"))
+                WebDriverWait(self.driver, self.TIMEOUT).until(element_present)
+
             except:
-                ""
-                print('Re-obtain this link')
+                # print('Can not access this post-url !!!')
+                continue
+            finally:
+
+                return self.driver.page_source
 
         print('Can not access this link !!!')
         return None
@@ -172,7 +166,7 @@ class BatDongSanCrawler(CrawlHTML):
         post["parser"] = parser
         post["type"] = ptype
         post["status"] = status
-        post["html"] = html.decode("utf-8") 
+        post["html"] = html
         post["date"] = str(date.today().strftime("%d/%m/%Y"))
 
         data = {}
@@ -184,28 +178,18 @@ class BatDongSanCrawler(CrawlHTML):
             self.buffer = [data]
 
     def get_date(self, date_str):
-        _date = None
-
-        if date_str == "hôm kia":
-            _date = date.today() - timedelta(days=2)
-        elif date_str == "hôm qua":
-            _date = date.today() - timedelta(days=1)
-        elif date_str == "hôm nay":
-            _date = date.today()
-        else:
-            _date = datetime.strptime(date_str, '%d/%m/%Y').date()
-
+        _date = datetime.strptime(date_str, '%d/%m/%Y').date()
         return _date
 
     def obtainData(self, file_name):
-        # local_urls = self.seed_url
-        local_urls = open("local_urls_log_nha.txt", "r").readlines()
-        visited_post = open("visited_post_log_nha.txt", "r").readlines()
+        local_urls = self.seed_url
+        # local_urls = open("local_urls_log_nha.txt", "r").readlines()
+        visited_post = [] # open("visited_post_log_nha.txt", "r").readlines()
         while local_urls:
             url = local_urls.pop(0)
             is_post = re.search(self.regex_post, url)
 
-            if url in visited_post or self.valid_url.search(url) == None:
+            if url in visited_post:
                 continue
 
             visited_post.append(url)
@@ -214,52 +198,44 @@ class BatDongSanCrawler(CrawlHTML):
                 print(" > ", url)
             except:
                 pass
-            
-            
+                      
 
             phtml = self.get_html(url)
+            # print(phtml)
             soup = soup_from_html(phtml)
             if soup is None:
                 continue
             
-            list_href = soup.find_all('a')
-
             if is_post:
                 _date = None
                 try:
-                    _date = soup.select_one("#ContentPlaceHolder1_ProductDetail1_divprice > div").get_text()
-                    _date = _date.split("|")[1].strip()
+                    _date = soup.select_one("#product-detail-web > div.detail-product > div.product-config.pad-16 > ul > li:nth-child(1) > span.sp3").get_text()
+                    _date = _date.strip()
                     _date = self.get_date(_date)
                 except:
                     continue
                 if not (self.post_date["from"] <= _date <= self.post_date["to"]):
                     continue
 
-                self.append_data(url, parser="post_nhadat247_com_vn", ptype="post", status="0", html  = phtml)
+                self.append_data(url, parser="post_batdongsan_com_vn", ptype="post", status="0", html  = phtml)
+                print(_date)
 
-            if self.regex_seller.search(url) and self.post_type == "seller":
-                self.append_data(url, parser="seller_nhadat247_com_vn", ptype="seller", status="0", html  = phtml)
+            list_href = soup.find_all('a')
 
             for link in list_href:
                 anchor = str(link.get('href'))
-
                 if not bool(urlparse(anchor).netloc):
                     anchor = urljoin(self.BASE_URL, anchor)
-                
-                if self.valid_url.search(anchor) == None:
-                    continue
 
-                if self.regex_post.search(anchor) or self.regex_sub_url.search(anchor) or \
-                        (self.regex_seller.search(anchor) and self.post_type == "seller"):
-
-                    if self.check_url(anchor) and self.check_type(anchor):
-                        local_urls.append(anchor)
+                # print(anchor)
+                if validators.url(anchor) and self.check_type(anchor) and (self.regex_post.search(anchor) or self.regex_sub_url.search(anchor)):
+                    local_urls.append(anchor)
 
             # check-point to save buffer data
             if isinstance(self.buffer, list) and len(self.buffer) == self.save_check_point:
                 self.save_to_file(file_name)
-                save_list(local_urls,"local_urls_log_" + self.post_type + ".txt")
-                save_list(visited_post, "visited_post_log_" + self.post_type + ".txt")
+                save_list(local_urls,"local_urls_log_batdongsan_" + self.post_type + ".txt")
+                save_list(visited_post, "visited_post_log_batdongsan_" + self.post_type + ".txt")
 
             print("Num ", self.post_count)
             # reach limit number of url then finish
