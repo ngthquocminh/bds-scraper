@@ -10,3 +10,4 @@ lxml
 requests
 pika
 pymongo
+azure-cosmos

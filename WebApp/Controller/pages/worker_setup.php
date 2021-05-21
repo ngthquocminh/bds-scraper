@@ -21,14 +21,15 @@ if ($edit == "save") {
     $_id = isset($_GET["id"]) ? $_GET["id"] : "";
     $_name = isset($_GET["name"]) ? $_GET["name"] : "";
     $_pass = isset($_GET["password"]) ? $_GET["password"] : "";
+    $_queue = isset($_GET["queue"]) ? $_GET["queue"] : "";
     $_ip = isset($_GET["ip"]) ? $_GET["ip"] : "";
     // echo $_id. $_name. $_pass;
     if ($current_worker != null) {
-        $current_worker->changeInfo($_name, $_pass, $_ip);
-        $database->save_change($_id, $_name, $_pass, $_ip);
+        $current_worker->changeInfo($_name, $_pass, $_ip, $_queue);
+        $database->save_change($_id, $_name, $_pass, $_ip, $_queue);
     } else {
-        if ($database->insert_one($_name, $_pass, $_ip)) {
-            $_new = new Worker($_name, $_pass, $_ip);
+        if ($database->insert_one($_name, $_pass, $_ip, $_queue)) {
+            $_new = new Worker($_name, $_pass, $_ip, $_queue);
             array_push($list_wokers, $_new);
         }
 
@@ -68,6 +69,7 @@ $form_display = ($edit == "edit" && $current_worker != null || $edit == "new") ?
                     <th>Name</th>
                     <th>Pass</th>
                     <th>IP</th>
+                    <th>Queue</th>
                     <th>.</th>
                     <th>.</th>
                 </tr>
@@ -82,6 +84,7 @@ $form_display = ($edit == "edit" && $current_worker != null || $edit == "new") ?
                     $name = $worker->getName();
                     $password = $worker->getPassword();
                     $ip = $worker->getIP();
+                    $queue = $worker->getQueue();
                     echo
                     "
                         <tr>
@@ -90,6 +93,7 @@ $form_display = ($edit == "edit" && $current_worker != null || $edit == "new") ?
                             <td>$name</td>
                             <td>$password</td>
                             <td>$ip</td>
+                            <td>$queue</td>
                             <td><a href=\"?action=edit&id=$id\"><i class=\"far fa-edit\"></a></i></td>
                             <td><a href=\"?action=edit&id=$id\"><i class=\"far fa-trash-alt\"></i></a></i></td>
                         </tr>
@@ -125,6 +129,13 @@ $form_display = ($edit == "edit" && $current_worker != null || $edit == "new") ?
                     <span class="input-group-text">Worker's IP</span>
                 </div>
                 <input name="ip" type="text" value="<?php echo $current_worker != null ? $current_worker->getIP() : ''; ?>" class="form-control" placeholder="Worker IP" required>
+
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-append">
+                    <span class="input-group-text">Queue Name</span>
+                </div>
+                <input name="queue" type="text" value="<?php echo $current_worker != null ? $current_worker->getQueue() : ''; ?>" class="form-control" placeholder="Queue Name" required>
 
             </div>
             <input name="action" type="text" class="form-control" value="save" style="display: none;" required>

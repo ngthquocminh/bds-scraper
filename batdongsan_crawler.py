@@ -31,19 +31,31 @@ from selenium.webdriver import ActionChains
 
 from crawl import CrawlHTML
 
+def soup_from_html(html):
+    soup = BeautifulSoup(html, 'html.parser')
+    return soup
+
+def save_list(data: list, file_name):
+    print("Checkpoint: ", file_name)
+    with open(file_name, 'w') as file:
+        for row in data:
+            file.write(str(row) + "\n")
+        file.close()
 
 class BatDongSanCrawler(CrawlHTML):
     """
     """
 
-    TIMEOUT = 10
+    TIMEOUT = 20
     BASE_URL = "https://nhadat247.com.vn"
+    
     HTM = "htm"
-    NUM_URLS = 10000
+    NUM_URLS = 30000
     post_count = 0
-    save_check_point = 50
+    save_check_point = 10
     get_soup_retry_times = 5
 
+    valid_url = re.compile("https[:][/][/]nhadat247[\.]com.vn.*")
     regex_sub_url = re.compile("([a-z][-a-z]*)?ban-[-a-z]+((.html)|(/[0-9]+))?")
     regex_post = re.compile("([a-z][-a-z]*)?ban-[-a-z0-9]+/[-a-z0-9]+pr[0-9]+.html")
     regex_seller = re.compile("xxxxxxxxxxxxx")  # "ban-[-a-z0-9]+/[-a-z0-9]+pr[0-9]+.html"
@@ -67,10 +79,7 @@ class BatDongSanCrawler(CrawlHTML):
             'Chrome/35.0.1916.47 Safari/537.36 '
     }
 
-    def __init__(self, date_from, date_to, post_type):
-        # self.driver = webdriver.Chrome(
-        #     executable_path=self.HOME_PATH + self.CHROME_DRIVER,
-        #     chrome_options=self.chrome_options)
+    def __init__(self, url: list, date_from, date_to, post_type):
 
         self.queue = []
         self.result = []
@@ -78,6 +87,9 @@ class BatDongSanCrawler(CrawlHTML):
         self.ptype = []
         self.post_type = post_type
         self.status = []
+        self.crawl_date = []
+        self.buffer = None
+        self.seed_url = url
 
         date_from = datetime.strptime(date_from, '%d/%m/%Y').date()
         date_to = datetime.strptime(date_to, '%d/%m/%Y').date()
@@ -119,7 +131,7 @@ class BatDongSanCrawler(CrawlHTML):
             return ["-nha"]
         if key == "dat":
             return ["-dat"]
-        if key == "can-ho/chung-cu":
+        if key in ["canho","chungcu"]:
             return ["can-ho", "chung-cu"]
 
         return ["-nha", "-dat", "can-ho", "chung-cu"]
@@ -137,13 +149,7 @@ class BatDongSanCrawler(CrawlHTML):
         """
         Get HTML (page source) of a given url
         """
-        # try:
-        #     self.driver.get(url)
-        #     self.driver.set_page_load_timeout(self.TIMEOUT)
-        #     return self.driver.page_source
-        # except:
-        #     print('Can not access this post-url !!!')
-        #     return None
+
         for i in range(self.get_soup_retry_times):
             try:
                 request = urllib.request.Request(url, data=None,
@@ -151,19 +157,31 @@ class BatDongSanCrawler(CrawlHTML):
                 html = urllib.request.urlopen(request).read()
                 return html
             except:
+                ""
                 print('Re-obtain this link')
 
         print('Can not access this link !!!')
         return None
 
-    def append_data(self, url, parser, ptype, status):
+    def append_data(self, url, parser, ptype, status, html):
         ""
         self.post_count += 1
-        self.parser.append(parser)
-        self.ptype.append(ptype)
-        self.status.append(status)
-        self.result.append(url)
-        self.crawl_date.append(date.today().strftime("%d/%m/%Y"))
+
+        post = {}
+        post["url"] = url
+        post["parser"] = parser
+        post["type"] = ptype
+        post["status"] = status
+        post["html"] = html.decode("utf-8") 
+        post["date"] = str(date.today().strftime("%d/%m/%Y"))
+
+        data = {}
+        data[hash(url)] = post
+
+        if isinstance(self.buffer, list):
+            self.buffer.append(data)
+        else:
+            self.buffer = [data]
 
     def get_date(self, date_str):
         _date = None
@@ -180,11 +198,14 @@ class BatDongSanCrawler(CrawlHTML):
         return _date
 
     def obtainData(self, file_name):
-        local_urls = [self.BASE_URL]
-        visited_post = []
+        # local_urls = self.seed_url
+        local_urls = open("local_urls_log_nha.txt", "r").readlines()
+        visited_post = open("visited_post_log_nha.txt", "r").readlines()
         while local_urls:
             url = local_urls.pop(0)
-            if url in visited_post:
+            is_post = re.search(self.regex_post, url)
+
+            if url in visited_post or self.valid_url.search(url) == None:
                 continue
 
             visited_post.append(url)
@@ -193,13 +214,17 @@ class BatDongSanCrawler(CrawlHTML):
                 print(" > ", url)
             except:
                 pass
+            
+            
 
-            soup = self.get_soup(url)
+            phtml = self.get_html(url)
+            soup = soup_from_html(phtml)
             if soup is None:
                 continue
+            
             list_href = soup.find_all('a')
 
-            if re.search(self.regex_post, url):
+            if is_post:
                 _date = None
                 try:
                     _date = soup.select_one("#ContentPlaceHolder1_ProductDetail1_divprice > div").get_text()
@@ -207,19 +232,22 @@ class BatDongSanCrawler(CrawlHTML):
                     _date = self.get_date(_date)
                 except:
                     continue
-                # print(_date)
                 if not (self.post_date["from"] <= _date <= self.post_date["to"]):
                     continue
 
-                self.append_data(url, parser="post_nhadat247_com_vn", ptype="post", status="0")
+                self.append_data(url, parser="post_nhadat247_com_vn", ptype="post", status="0", html  = phtml)
 
             if self.regex_seller.search(url) and self.post_type == "seller":
-                self.append_data(url, parser="seller_nhadat247_com_vn", ptype="seller", status="0")
+                self.append_data(url, parser="seller_nhadat247_com_vn", ptype="seller", status="0", html  = phtml)
 
             for link in list_href:
                 anchor = str(link.get('href'))
+
                 if not bool(urlparse(anchor).netloc):
                     anchor = urljoin(self.BASE_URL, anchor)
+                
+                if self.valid_url.search(anchor) == None:
+                    continue
 
                 if self.regex_post.search(anchor) or self.regex_sub_url.search(anchor) or \
                         (self.regex_seller.search(anchor) and self.post_type == "seller"):
@@ -228,48 +256,50 @@ class BatDongSanCrawler(CrawlHTML):
                         local_urls.append(anchor)
 
             # check-point to save buffer data
-            if len(self.result) == self.save_check_point:
-                self.save_tocsv(file_name)
+            if isinstance(self.buffer, list) and len(self.buffer) == self.save_check_point:
+                self.save_to_file(file_name)
+                save_list(local_urls,"local_urls_log_" + self.post_type + ".txt")
+                save_list(visited_post, "visited_post_log_" + self.post_type + ".txt")
 
             print("Num ", self.post_count)
             # reach limit number of url then finish
             if self.post_count >= self.NUM_URLS:
                 break
 
-        self.save_tocsv(file_name)
+        self.save_to_file(file_name)
         print('CRAWLING DONE')
 
-    def save_tocsv(self, file_name):
+    def save_to_file(self, file_name):
         """
-        Save to csv
+        Save to local file
         """
-        print("Saving ... ", len(self.result))
+        if not isinstance(self.buffer, list) or len(self.buffer) < 1:
+            return 
+
+        print("Saving ... ", len(self.buffer))
         from pathlib import Path
         from csv import writer
 
-        file_name += ".csv"
+        file_name += ".json"
 
         my_file = Path(file_name)
         if my_file.is_file():
             # file exists
             print("file exists")
-            with open(file_name, 'a') as fd:
-                for index in range(len(self.result)):
-                    csv_writer = writer(fd)
-                    csv_writer.writerow([self.result[index], self.parser[index], self.ptype[index], self.status[index],
-                                         self.crawl_date[index]])
-                fd.close()
+            with open(file_name, 'a') as file:
+                for row in self.buffer:
+                    file.write(json.dumps(row) + "\n")
+                file.close()
         else:
-            print("new file")
-            dic = {"Links": self.result,
-                   "Parser": self.parser,
-                   "Type": self.ptype,
-                   "Status": self.status,
-                   "Date": self.crawl_date}
-            data = pd.DataFrame(dic)
-            data.to_csv(file_name, index=False)
+            with open(file_name, 'w') as file:
+                for row in self.buffer:
+                    file.write(json.dumps(row) + "\n")
+                file.close()
+
 
         self.result = []
         self.parser = []
         self.ptype = []
         self.status = []
+        self.html = []
+        self.buffer = None

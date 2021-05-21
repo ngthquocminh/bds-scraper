@@ -5,9 +5,9 @@ include __DIR__ . "/worker.php";
 class WorkerDB
 {
     protected $servername = "localhost";
-    protected $username = "minh01";
-    protected $password = "minh01";
-    protected $dbname = "minh01";
+    protected $username = "local";
+    protected $password = "123456";
+    protected $dbname = "worker_system";
 
     public function __destruct()
     {
@@ -51,7 +51,7 @@ class WorkerDB
         return $list_worker;
     }
 
-    function save_change($id, $name, $password, $ip)
+    function save_change($id, $name, $password, $ip, $queue)
     {
         $conn = new mysqli($this->servername, $this->username, $this->password, $this->dbname);
 
@@ -60,7 +60,8 @@ class WorkerDB
             die("Connection failed: " . $conn->connect_error);
         }
 
-        $sql = "UPDATE workers SET name='$name', password='$password', ip='$ip' WHERE id='$id'";
+        
+        $sql = "UPDATE workers SET name='$name', password='$password', ip='$ip', queue='$queue' WHERE id='$id'";
         $result = $conn->query($sql);
 
         $conn->close();
@@ -68,7 +69,7 @@ class WorkerDB
         return $result;
     }
 
-    function insert_one($name, $password, $ip)
+    function insert_one($name, $password, $ip, $queue)
     {
         $conn = new mysqli($this->servername, $this->username, $this->password, $this->dbname);
         $id = (new DateTime())->getTimestamp();
@@ -77,7 +78,7 @@ class WorkerDB
             die("Connection failed: " . $conn->connect_error);
         }
 
-        $sql = "INSERT INTO  workers (`id`, `name`, `password`, `ip`) VALUE ('$id', '$name', '$password', '$ip') ";
+        $sql = "INSERT INTO  workers (`id`, `name`, `password`, `ip`, `queue`) VALUE ('$id', '$name', '$password', '$ip', '$queue') ";
         // echo $sql;
         $result = $conn->query($sql);
 

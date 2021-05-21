@@ -6,18 +6,20 @@ class Worker {
     protected $name;
     protected $password;
     protected $ip;
+    protected $queue;
 
-    public function __construct($name, $password, $ip)
+    public function __construct($name, $password, $ip, $queue)
     {
         $this->name = $name;
         $this->password = $password;
         $this->ip = (string)$ip;
+        $this->queue = $queue;
         $this->id = (new DateTime())->getTimestamp();
     }
 
-    public static function newFull($id, $name, $password, $ip)
+    public static function newFull($id, $name, $password, $ip, $queue)
     {
-        $new = new Worker($name, $password, $ip);
+        $new = new Worker($name, $password, $ip, $queue);
         $new->id = $id;
         return $new;
     }
@@ -38,6 +40,10 @@ class Worker {
     public function getId() {
         return $this->id;
     }
+
+    public function getQueue() {
+        return $this->queue;
+    }
     
     public function changeInfo($name, $password, $ip)
     {
@@ -48,7 +54,7 @@ class Worker {
 
     public static function newByJson($json) {
         $worker_data = json_decode($json);
-        $new_worker = new Worker($worker_data->{"name"}, $worker_data->{"password"}, $worker_data->{"ip"});
+        $new_worker = new Worker($worker_data->{"name"}, $worker_data->{"password"}, $worker_data->{"ip"}, $worker_data->{"queue"});
         $new_worker->id = $worker_data->{"id"};
 
         return $new_worker;

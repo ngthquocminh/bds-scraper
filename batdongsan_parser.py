@@ -27,7 +27,6 @@ import math
 
 import validators
 import pandas as pd
-from slugify import slugify
 from time import time
 from bs4 import BeautifulSoup
 from datetime import datetime, date, timedelta
@@ -52,7 +51,7 @@ from selenium.webdriver.remote.remote_connection import LOGGER
 
 LOGGER.setLevel(logging.WARNING)
 
-from database import save_to
+from database import DBTarget
 
 MAXIMUM = 10000000
 
@@ -91,46 +90,24 @@ def get_url(name):
 class BatDongSanParser(ParseHTML):
     MODEL_PATH = "config/"
 
-    POST_LIMIT = 1100
-    BASE_URL = "https://nhadat247.com.vn/"
-
-    CHROME_DRIVER = '\\chrome-driver\\chromedriver.exe'
-    HOME_PATH = os.path.abspath(os.getcwd())
-
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")  # hide popup
-    if platform.system() == "Linux":
-        chrome_options.binary_location = '/usr/bin/chromium-browser'
-        CHROME_DRIVER = '/chrome-driver-linux/chromedriver'
-    chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_argument('--ignore-certificate-errors')
-    chrome_options.add_argument('--incognito')
-    chrome_options.add_argument("--log-level=3")
-
-    headers = {
-        'User-Agent':
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) '
-            'Chrome/35.0.1916.47 Safari/537.36 '
-    }
+    POST_LIMIT = 99999
 
     def __init__(self, name_get, name_save):
-
-        self.driver = webdriver.Chrome(
-            executable_path=self.HOME_PATH + self.CHROME_DRIVER,
-            chrome_options=self.chrome_options)
 
         self.save_func = self.save_to_local
 
         self.name_get = name_get
         self.name_save = name_save
-        self.es = Elasticsearch()
         self.save_buffer = []
 
     def save_to_db(self, row=None):
-        if row is None:
-            return False
-
-        self.save_func(row)
+        for i in range(5):
+            try:                
+                return self.save_func(row)
+            except:
+                continue
+        
+        return False
 
     def connect_to_es(self):
         return self.es.search(index=self.name_get, body={'size': 10000, "query": {"match_all": {}}})
@@ -158,7 +135,8 @@ class BatDongSanParser(ParseHTML):
                 return None
 
     def set_save_to_database(self):
-        self.save_func = save_to
+        db = DBTarget()
+        self.save_func = db.save_to()
 
     def save_to_local(self, doc):
         ""
@@ -170,13 +148,12 @@ class BatDongSanParser(ParseHTML):
             step_save = len(self.save_buffer)
 
         if len(self.save_buffer) == step_save:
-            self.save_to_csv(self.name_save)
-            self.save_buffer = []
+            self.save_to_file(self.name_save)
+            # self.save_buffer = []
 
-    def save_to_csv(self, name):
-        f = open(name + ".json", "a")
-        for post in self.save_buffer:
-            f.write(json.dumps(post) + "\n")
+    def save_to_file(self, name):
+        f = open(name + ".json", "w")
+        f.write(json.dumps(self.save_buffer, indent=5))
         f.close()
 
     def add_to_buffer(self, post):
@@ -184,15 +161,6 @@ class BatDongSanParser(ParseHTML):
         self.save_buffer.append(post)
 
     def stringify_children(self, node):
-        # _list = []
-        # for c in node.getchildren():
-        #     _item = [c.text]
-        #     print(" > ",_item[0])
-        #     _list.append(_item)
-
-        # parts = list(chain(*([c.text] for c in node.iter())))
-        # # filter removes possible Nones in texts and tails
-        # return ''.join(filter(None, parts))
         from lxml.etree import tostring
         from itertools import chain
         parts = ([node.text] +
@@ -201,22 +169,72 @@ class BatDongSanParser(ParseHTML):
         # filter removes possible Nones in texts and tails
         return ''.join(filter(None, parts))
 
+    def get_date(self, date_str):
+        _date = None
+
+        if date_str == "hôm kia":
+            _date = date.today() - timedelta(days=2)
+        elif date_str == "hôm qua":
+            _date = date.today() - timedelta(days=1)
+        elif date_str == "hôm nay":
+            _date = date.today()
+        else:
+            _date = datetime.strptime(date_str, '%d/%m/%Y').date()
+
+        return _date
+
+
     def parseData(self, status_parse):
         """
         Retrieve necessary information for each document and save to elasticsearch
         """
-        _parse = get_url(self.name_get)
 
-        print("-" * 20, '\nNUMBER OF POSTS: \n', _parse)
-        posts = _parse
+        post = None
+        file = None
+        try:
+            file = open(self.name_get + ".json", "r")
+            post = file.readline()
+        except:
+            "nodata"
+        print(post)
+        print("-" * 50)
 
         count = 1
+        line = 0
+        passs = False
+        while post:
 
-        for index, post in posts.iterrows():
-            post_url = post['Links']
-            post_config = post["Parser"]
-            post_type = post["Type"]
-            post_status = post["Status"]
+            line += 1
+
+            try:
+                post = json.loads(post)
+                for p in post:
+                    post = post[p]
+            except:
+                post = file.readline()
+                continue
+
+            # if passs:
+            #     break
+            # if post["url"] != "https://nha.chotot.com/tp-ho-chi-minh/quan-tan-phu/mua-ban-nha-dat/85110146.htm":
+            #     continue
+            # else:
+            #     passs = True
+
+            post_url = post['url']
+            post_config = post["parser"]
+            post_type = post["type"]
+            post_status = post["status"]
+
+            # if not passs:
+            #     if post_url == "https://nha.chotot.com/quang-nam/huyen-thang-binh/mua-ban-nha-dat/85089346.htm#px=SR-similarad-[PO-3][PL-bottom]":
+            #         print("Continue ... ")
+            #         passs = True
+            #     print(" >> ",count)
+            #     count+=1
+            #     post = file.readline()
+            #     continue
+
             print("** POST NUMBER : ", count)
             print("** POST url : ", post_url)
             print("Config: ", post_config)
@@ -235,14 +253,14 @@ class BatDongSanParser(ParseHTML):
             doc["url"] = post_url
 
             try:
-                doc["crawl_date"] = post["Date"]
+                doc["crawl_date"] = post["date"]
             except:
-                doc["crawl_date"] = date.today().strftime("%d/%m/%Y")
+                doc["crawl_date"] = str(date.today().strftime("%d/%m/%Y"))
 
             doc["parse_date"] = date.today().strftime("%d/%m/%Y")
-            doc["status"] = int(post["Status"]) + 1
+            doc["status"] = int(post["status"]) + 1
 
-            page_source = get_html(post['Links'])
+            page_source = post['html']
 
             page_source = re.sub("(<!--.*?-->)", "", page_source, flags=re.DOTALL)
             page_source = re.sub("(<script.*?>.*?</script>)", "", page_source, flags=re.DOTALL)
@@ -255,9 +273,16 @@ class BatDongSanParser(ParseHTML):
             detail = dict()
             none_attr_count = 0
             for index, row in model.iterrows():
-                xpath = str(row["xpath"])
+                
                 feature = row["features"]
-                print(" > ", index, ". ", feature, ": ", xpath)
+                
+                if row["features"] in detail:
+                    if detail[row["features"]] != None and detail[row["features"]] != "":
+                        continue
+
+                xpath = str(row["xpath"])
+
+                print(" > ", index, ". ", feature)
 
                 attr = row["default"]
                 if xpath != '' or len(xpath) > 0:
@@ -297,14 +322,15 @@ class BatDongSanParser(ParseHTML):
                 # print(" >>>>> ", attr)
 
                 if row["regex_take"] != '':
-                    # print("Regex")
-                    _attr = strip_text(attr) + "<eof>"
+                    print("regex_take: ", row["regex_take"])
+                    _attr = strip_text(attr)
                     # print(_attr)
 
                     try:
                         _attr = re.search(str(row["regex_take"]), _attr)
                         if _attr:
                             _attr = _attr.group(1).strip()
+                        # print(_attr)
                     except Exception:
                         _attr = attr
                     # print(_attr)
@@ -324,25 +350,41 @@ class BatDongSanParser(ParseHTML):
                         attr = None
                 except:
                     ""
+                
+                if feature == "date":
+                    try:
+                        _date = re.sub("(<!--.*?-->)", "", attr, flags=re.DOTALL)
+                        attr = self.get_date(_date, post["date"])
+                    except:
+                        ""
 
                 if attr is None:
                     none_attr_count += 1
 
                 detail[feature] = attr.strip() if isinstance(attr, str) else attr
 
+            try:
+                if detail["length"] == "" or detail["length"] == None:
+                    detail["length"] = str(int(detail["surface"])//int(detail["width"]))
+            except:
+                ""  
+
             if none_attr_count / len(detail) > 0.6:
                 print("{ Ignored }")
-                continue
+                post = file.readline()
+                continue            
 
             doc["detail"] = detail
             print(doc)
 
             save_result = self.save_to_db(doc)
-            # print("Saved" , save_result)
+            print("Saved" , save_result)
 
             count += 1
             if 0 < self.POST_LIMIT <= count:
                 break
+            
+            post = file.readline()
 
         self.finishing_up()
 

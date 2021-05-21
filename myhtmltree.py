@@ -1,11 +1,9 @@
-
-
-class mytree(object()):
+class mytree(object):
     ""
     __xml = ""
     
-    def __init__(str):
+    def __init__(self, str):
         __xml = str
     
-    def getchild():
+    def getchild(self):
         ""
