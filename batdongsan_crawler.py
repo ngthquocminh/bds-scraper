@@ -24,6 +24,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchWindowException
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.common.exceptions import ElementClickInterceptedException
@@ -72,11 +73,7 @@ class BatDongSanCrawler(CrawlHTML):
     }
 
     def __init__(self, url: list, date_from, date_to, post_type):
-        self.driver = webdriver.Chrome(
-            executable_path=self.HOME_PATH + self.CHROME_DRIVER,
-            chrome_options=self.chrome_options)
-
-
+        self.driver = self.init_browser_driver()
         self.queue = []
         self.result = []
         self.parser = []
@@ -96,6 +93,11 @@ class BatDongSanCrawler(CrawlHTML):
 
         self.post_date = {"from": date_from, "to": date_to}
         print("init crawler")
+
+    def init_browser_driver(self):
+        return webdriver.Chrome(
+            executable_path=self.HOME_PATH + self.CHROME_DRIVER,
+            chrome_options=self.chrome_options)
 
     def get_html_and_soup(self, url):
         """
@@ -136,12 +138,28 @@ class BatDongSanCrawler(CrawlHTML):
         """
         Get HTML (page source) of a given url
         """
-        self.driver.get(url)
+        html = ""
+        driver_error = True # default True allows code to enter while
 
-        element_present = EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/footer"))
-        WebDriverWait(self.driver, self.TIMEOUT).until(element_present)
+        retries_time = 5
+        count_retry = 0
+        while driver_error:
+            try:
+                self.driver.get(url)
+                element_present = EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/footer"))
+                WebDriverWait(self.driver, self.TIMEOUT).until(element_present)
+                html = self.driver.page_source
 
-        return self.driver.page_source
+                driver_error = False
+            except NoSuchWindowException:
+                driver_error = True
+                if count_retry >= 5:
+                    return html
+
+                count_retry += 1
+                self.driver = self.init_browser_driver()
+
+        return html
 
     def append_data(self, url, parser, ptype, status, html):
         ""
