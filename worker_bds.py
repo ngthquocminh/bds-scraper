@@ -29,10 +29,11 @@ from batdongsan_crawler import BatDongSanCrawler
 def start_crawling():
     ""
     canho = ["https://batdongsan.com.vn/ban-can-ho-chung-cu"]
-    nha = ["https://batdongsan.com.vn/ban-nha-rieng", "https://batdongsan.com.vn/ban-nha-biet-thu-lien-ke", "https://batdongsan.com.vn/ban-nha-mat-pho"]
+    nharieng = ["https://batdongsan.com.vn/ban-nha-rieng"]
+    nhapho_biethu = ["https://batdongsan.com.vn/ban-nha-biet-thu-lien-ke", "https://batdongsan.com.vn/ban-nha-mat-pho"]
     dat = ["https://batdongsan.com.vn/ban-dat", "https://batdongsan.com.vn/ban-dat-nen-du-an"]
-    crawler = BatDongSanCrawler(canho, "1/1/2018", "29/5/2021", "canho")
-    crawler.obtainData("post_urls_batdongsan_canho")
+    crawler = BatDongSanCrawler(nharieng, "1/1/2018", "29/5/2021", "nharieng")
+    crawler.obtainData("post_urls_batdongsan_nharieng")
 
 
 def html_parser():
