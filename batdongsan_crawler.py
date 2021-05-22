@@ -5,6 +5,7 @@ import json
 import re
 import hashlib
 import urllib
+import traceback
 
 import validators
 import pandas as pd
@@ -24,7 +25,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchWindowException
+from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.common.exceptions import ElementClickInterceptedException
@@ -44,7 +45,7 @@ class BatDongSanCrawler(CrawlHTML):
     """
     """
 
-    TIMEOUT = 6
+    TIMEOUT = 10
     BASE_URL = "https://batdongsan.com.vn/"
     
     HTM = "htm"
@@ -85,8 +86,8 @@ class BatDongSanCrawler(CrawlHTML):
         self.seed_url = url
     
         # self.valid_url = re.compile("https[:][/][/]batdongsan[\.]com[\.]vn.+")
-        self.regex_sub_url = re.compile("https[:][/][/]batdongsan[\.]com[\.]vn/ban-[a-z][-a-z]+(/p[0-9]+)?")
-        self.regex_post = re.compile("https[:][/][/]batdongsan[\.]com[\.]vn/ban-[a-z][-a-z]+/[-a-z0-9]+pr[0-9]+")
+        self.regex_sub_url = re.compile("https[:][/][/]batdongsan[\.]com[\.]vn/ban-[-a-z0-9]+(/p[0-9]+)?")
+        self.regex_post = re.compile("https[:][/][/]batdongsan[\.]com[\.]vn/ban-[-a-z0-9]+/[-a-z0-9]+pr[0-9]+")
 
         date_from = datetime.strptime(date_from, '%d/%m/%Y').date()
         date_to = datetime.strptime(date_to, '%d/%m/%Y').date()
@@ -111,8 +112,10 @@ class BatDongSanCrawler(CrawlHTML):
                 _soup = BeautifulSoup(_html, 'html.parser')
                 if _soup is not None:
                     break
-            except:
+            except Exception as e: 
+                traceback.print_exc()
                 continue
+
         return _html, _soup
 
     def get_key_from_type(self, key):
@@ -141,23 +144,29 @@ class BatDongSanCrawler(CrawlHTML):
         html = ""
         driver_error = True # default True allows code to enter while
 
-        retries_time = 5
+        retries_time = 4
         count_retry = 0
         while driver_error:
             try:
                 self.driver.get(url)
+                
                 element_present = EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/footer"))
                 WebDriverWait(self.driver, self.TIMEOUT).until(element_present)
+                
                 html = self.driver.page_source
-
                 driver_error = False
-            except NoSuchWindowException:
-                driver_error = True
-                if count_retry >= 5:
-                    return html
 
+            except Exception as e: 
+                traceback.print_exc()
+                if count_retry >= 5:
+                    break
+                driver_error = True
                 count_retry += 1
-                self.driver = self.init_browser_driver()
+                if "not reachable" in repr(e) or "no such window" in repr(e):
+                    self.driver = self.init_browser_driver()
+                else:
+                    "others"
+                    break
 
         return html
 
@@ -211,8 +220,10 @@ class BatDongSanCrawler(CrawlHTML):
                     _date = _soup.select_one("#product-detail-web > div.detail-product > div.product-config.pad-16 > ul > li:nth-child(1) > span.sp3").get_text()
                     _date = _date.strip()
                     _date = self.get_date(_date)
-                except:
+                except Exception as e: 
+                    traceback.print_exc()
                     continue
+
                 if not (self.post_date["from"] <= _date <= self.post_date["to"]):
                     continue
 
