@@ -32,10 +32,6 @@ from selenium.webdriver import ActionChains
 
 from crawl import CrawlHTML
 
-def soup_from_html(html):
-    soup = BeautifulSoup(html, 'html.parser')
-    return soup
-
 def save_list(data: list, file_name):
     print("Checkpoint: ", file_name)
     with open(file_name, 'w') as file:
@@ -101,21 +97,21 @@ class BatDongSanCrawler(CrawlHTML):
         self.post_date = {"from": date_from, "to": date_to}
         print("init crawler")
 
-    def get_soup(self, url):
+    def get_html_and_soup(self, url):
         """
         Return Beautifulsoup object
         """
+        _soup = None
+        _html = None
         for i in range(self.get_soup_retry_times):
-            try:
-                request = urllib.request.Request(url, data=None, headers=self.headers)
-                html = urllib.request.urlopen(request).read()
-                soup = BeautifulSoup(html, 'html.parser')
-                return soup
+            try:                  
+                _html = self.get_html(url)
+                _soup = BeautifulSoup(_html, 'html.parser')
+                if _soup is not None:
+                    break
             except:
-                print('Re-obtain this link')
-
-        print('Can not access this link !!!')
-        return None
+                continue
+        return _html, _soup
 
     def get_key_from_type(self, key):
         if key == "nha":
@@ -140,22 +136,12 @@ class BatDongSanCrawler(CrawlHTML):
         """
         Get HTML (page source) of a given url
         """
-        for i in range(self.get_soup_retry_times):
-            try:
-                self.driver.get(url)
+        self.driver.get(url)
 
-                element_present = EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/footer"))
-                WebDriverWait(self.driver, self.TIMEOUT).until(element_present)
+        element_present = EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/footer"))
+        WebDriverWait(self.driver, self.TIMEOUT).until(element_present)
 
-            except:
-                # print('Can not access this post-url !!!')
-                continue
-            finally:
-
-                return self.driver.page_source
-
-        print('Can not access this link !!!')
-        return None
+        return self.driver.page_source
 
     def append_data(self, url, parser, ptype, status, html):
         ""
@@ -194,22 +180,17 @@ class BatDongSanCrawler(CrawlHTML):
 
             visited_post.append(url)
 
-            try:
-                print(" > ", url)
-            except:
-                pass
-                      
+            print(" > ", url)
+  
+            _html, _soup = self.get_html_and_soup(url)
 
-            phtml = self.get_html(url)
-            # print(phtml)
-            soup = soup_from_html(phtml)
-            if soup is None:
+            if _soup is None:
                 continue
-            
+
             if is_post:
                 _date = None
                 try:
-                    _date = soup.select_one("#product-detail-web > div.detail-product > div.product-config.pad-16 > ul > li:nth-child(1) > span.sp3").get_text()
+                    _date = _soup.select_one("#product-detail-web > div.detail-product > div.product-config.pad-16 > ul > li:nth-child(1) > span.sp3").get_text()
                     _date = _date.strip()
                     _date = self.get_date(_date)
                 except:
@@ -217,10 +198,10 @@ class BatDongSanCrawler(CrawlHTML):
                 if not (self.post_date["from"] <= _date <= self.post_date["to"]):
                     continue
 
-                self.append_data(url, parser="post_batdongsan_com_vn", ptype="post", status="0", html  = phtml)
+                self.append_data(url, parser="post_batdongsan_com_vn", ptype="post", status="0", html  = _html)
                 print(_date)
 
-            list_href = soup.find_all('a')
+            list_href = _soup.find_all('a')
 
             for link in list_href:
                 anchor = str(link.get('href'))
@@ -241,6 +222,8 @@ class BatDongSanCrawler(CrawlHTML):
             # reach limit number of url then finish
             if self.post_count >= self.NUM_URLS:
                 break
+
+            
 
         self.save_to_file(file_name)
         print('CRAWLING DONE')
