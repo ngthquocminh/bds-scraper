@@ -32,8 +32,8 @@ def start_crawling():
     nharieng = ["https://batdongsan.com.vn/ban-nha-rieng"]
     nhapho_biethu = ["https://batdongsan.com.vn/ban-nha-biet-thu-lien-ke", "https://batdongsan.com.vn/ban-nha-mat-pho"]
     dat = ["https://batdongsan.com.vn/ban-dat", "https://batdongsan.com.vn/ban-dat-nen-du-an"]
-    crawler = BatDongSanCrawler(nharieng, "1/1/2018", "29/5/2021", "nharieng")
-    crawler.obtainData("post_urls_batdongsan_nharieng")
+    crawler = BatDongSanCrawler(canho, "1/1/2018", "29/5/2021", "canho")
+    crawler.obtainData("post_urls_batdongsan_canho2")
 
 
 def html_parser():

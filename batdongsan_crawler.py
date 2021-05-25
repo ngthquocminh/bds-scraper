@@ -119,14 +119,16 @@ class BatDongSanCrawler(CrawlHTML):
         return _html, _soup
 
     def get_key_from_type(self, key):
-        if key == "nha":
-            return ["-nha"]
         if key == "dat":
-            return ["-dat"]
+            return ["ban-dat"]
         if key in ["canho","chungcu"]:
-            return ["can-ho-chung-cu"]
+            return ["ban-can-ho-chung-cu"]
+        if key == "nhapho_biethu":
+            return ["ban-nha-mat-pho", "ban-nha-biet-thu"]
+        if key == "nharieng":
+            return ["ban-nha-rieng"]
 
-        return ["-nha-", "-dat", "-can-ho-chung-cu"]
+        return ["ban-dat", "ban-can-ho-chung-cu", "ban-nha-rieng", "ban-nha-mat-pho", "ban-nha-biet-thu"]
 
     def check_type(self, url):
         list_key = self.get_key_from_type(self.post_type)
@@ -195,25 +197,26 @@ class BatDongSanCrawler(CrawlHTML):
         return _date
 
     def obtainData(self, file_name):
-        local_urls = self.seed_url
-        # local_urls = open("local_urls_log_nha.txt", "r").readlines()
-        visited_post = [] # open("visited_post_log_nha.txt", "r").readlines()
+        print("START...")
+        # local_urls = self.seed_url
+        local_urls = open("local_urls_log_batdongsan_" + self.post_type + ".txt", "r").readlines()
+        visited_post = open("visited_post_log_batdongsan_"+ self.post_type + ".txt", "r").readlines()
         while local_urls:
             url = local_urls.pop(0)
-            is_post = re.search(self.regex_post, url)
-
-            if url in visited_post:
+        
+            if url in visited_post or not self.check_type(url):
                 continue
+            print(" > ", url)
 
             visited_post.append(url)
 
-            print(" > ", url)
   
             _html, _soup = self.get_html_and_soup(url)
 
             if _soup is None:
                 continue
 
+            is_post = re.search(self.regex_post, url)
             if is_post:
                 _date = None
                 try:
@@ -228,7 +231,7 @@ class BatDongSanCrawler(CrawlHTML):
                     continue
 
                 self.append_data(url, parser="post_batdongsan_com_vn", ptype="post", status="0", html  = _html)
-                print(_date)
+                # print(_date)
 
             list_href = _soup.find_all('a')
 
@@ -247,7 +250,7 @@ class BatDongSanCrawler(CrawlHTML):
                 save_list(local_urls,"local_urls_log_batdongsan_" + self.post_type + ".txt")
                 save_list(visited_post, "visited_post_log_batdongsan_" + self.post_type + ".txt")
 
-            print("Num ", self.post_count)
+            print("      num ", self.post_count)
             # reach limit number of url then finish
             if self.post_count >= self.NUM_URLS:
                 break
