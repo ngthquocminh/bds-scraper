@@ -51,7 +51,7 @@ class BatDongSanCrawler(CrawlHTML):
     HTM = "htm"
     NUM_URLS = 30000
     post_count = 0
-    save_check_point = 10
+    save_check_point = 100
     get_soup_retry_times = 5
 
     CHROME_DRIVER = '\\chrome-driver\\chromedriver.exe'
@@ -128,7 +128,7 @@ class BatDongSanCrawler(CrawlHTML):
         if key == "nharieng":
             return ["ban-nha-rieng"]
 
-        return ["ban-dat", "ban-can-ho-chung-cu", "ban-nha-rieng", "ban-nha-mat-pho", "ban-nha-biet-thu"]
+        return ["ban-dat", "ban-can-ho  -chung-cu", "ban-nha-rieng", "ban-nha-mat-pho", "ban-nha-biet-thu"]
 
     def check_type(self, url):
         list_key = self.get_key_from_type(self.post_type)
