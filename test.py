@@ -4,6 +4,7 @@ import platform
 import json
 import re
 import hashlib
+from traceback import print_exc
 import urllib
 
 import validators
@@ -56,8 +57,8 @@ from random import randint
 from datetime import datetime
 
 
-_timer = time.time()
-local_urls = open("local_urls_log_nha.txt", "r").readlines()
+# _timer = time.time()
+# local_urls = open("local_urls_log_nha.txt", "r").readlines()
 # file = open("test.txt", "w")
 # local_urls += local_urls*100
 
@@ -89,6 +90,21 @@ local_urls = open("local_urls_log_nha.txt", "r").readlines()
 #         res = True
 # print(res, time.time() - _timer)
 
+# file = open("parsed_chotot_nhadat1.json", "r")
+# lines = json.loads(file.read())
+# list_legal = []
+# for post in lines:
+#     legal = post["detail"]["legal"]
+#     if not legal in list_legal:
+#         list_legal.append(legal)
+
+# print(list_legal)
 
 
-
+file = open("local_urls_log_batdongsan_nharieng.txt", "r")
+lines = file.readlines()
+new_lines = []
+for line in lines:
+    if len(line) > 1 and "ban-nha-rieng" in line:
+        new_lines.append(line)
+open("local_urls_log_batdongsan_nharieng2.txt","w").write("\n".join(new_lines))
