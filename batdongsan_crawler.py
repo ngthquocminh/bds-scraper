@@ -94,6 +94,8 @@ class BatDongSanCrawler(CrawlHTML):
         date_from = datetime.strptime(date_from, '%d/%m/%Y').date()
         date_to = datetime.strptime(date_to, '%d/%m/%Y').date()
 
+        self.key_type = self.get_key_from_type(self.post_type)
+
         self.post_date = {"from": date_from, "to": date_to}
         print("init crawler")
 
@@ -133,8 +135,7 @@ class BatDongSanCrawler(CrawlHTML):
         return ["ban-dat", "ban-can-ho  -chung-cu", "ban-nha-rieng", "ban-nha-mat-pho", "ban-nha-biet-thu"]
 
     def check_type(self, url):
-        list_key = self.get_key_from_type(self.post_type)
-        for key in list_key:
+        for key in self.key_type:
             if key in url:
                 # print("ok")
                 return True
@@ -206,8 +207,9 @@ class BatDongSanCrawler(CrawlHTML):
         while local_urls:
             url = local_urls.pop(0)
         
-            if url in visited_post or not self.check_type(url):
+            if len(url) < 10 and (url in visited_post or not self.check_type(url)):
                 continue
+            
             print(" > ", url)
 
             visited_post.append(url)
