@@ -63,6 +63,8 @@ class BatDongSanCrawler(CrawlHTML):
         print("Linux chrome")
         chrome_options.binary_location = '/usr/bin/chromium-browser'
         CHROME_DRIVER = '/chrome-driver-linux/chromedriver'
+    prefs = {"profile.managed_default_content_settings.images": 2}
+    chrome_options.add_experimental_option("prefs", prefs)
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument('--ignore-certificate-errors')
     chrome_options.add_argument('--incognito')
