@@ -101,10 +101,18 @@ from datetime import datetime
 # print(list_legal)
 
 
-file = open("local_urls_log_batdongsan_nharieng.txt", "r")
+file = open("visited_post_log_batdongsan_nharieng.txt", "r")
 lines = file.readlines()
 new_lines = []
 for line in lines:
     if len(line) > 1 and "ban-nha-rieng" in line:
         new_lines.append(line)
-open("local_urls_log_batdongsan_nharieng2.txt","w").write("\n".join(new_lines))
+open("visited_post_log_batdongsan_nharieng2.txt","w").write("\n".join(set(new_lines)))
+
+# file = open("local_urls_log_batdongsan_nhapho_biethu.txt", "r")
+# lines = file.readlines()
+# new_lines = []
+# for line in lines:
+#     if len(line) > 1 and ("ban-nha-biet-thu" in line or "ban-nha-mat-pho" in line):
+#         new_lines.append(line)
+# open("local_urls_log_batdongsan_nhapho_biethu2.txt","w").write("\n".join(set(new_lines)))

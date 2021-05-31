@@ -37,8 +37,7 @@ from crawl import CrawlHTML
 def save_list(data: list, file_name):
     print("Checkpoint: ", file_name)
     with open(file_name, 'w') as file:
-        for row in data:
-            file.write(str(row) + "\n")
+        file.write("\n".join(set(data)))
         file.close()
 
 class BatDongSanCrawler(CrawlHTML):
@@ -54,7 +53,7 @@ class BatDongSanCrawler(CrawlHTML):
     save_check_point = 100
     get_soup_retry_times = 5
 
-    CHROME_DRIVER = '\\chrome-driver\\chromedriver.exe'
+    CHROME_DRIVER = """\chrome-driver\chromedriver.exe"""
     HOME_PATH = os.path.abspath(os.getcwd())
 
     chrome_options = Options()
@@ -167,7 +166,7 @@ class BatDongSanCrawler(CrawlHTML):
                     break
                 driver_error = True
                 count_retry += 1
-                if "not reachable" in repr(e) or "no such window" in repr(e):
+                if "not reachable" in repr(e) or "no such window" in repr(e) or "Timed out receiving message from renderer" in repr(e): 
                     self.driver = self.init_browser_driver()
                 else:
                     "others"
