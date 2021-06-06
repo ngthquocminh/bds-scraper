@@ -50,7 +50,9 @@ import logging
 from selenium.webdriver.remote.remote_connection import LOGGER
 
 LOGGER.setLevel(logging.WARNING)
-
+from lxml.etree import tostring
+from itertools import chain
+import traceback
 from database import DBTarget
 
 MAXIMUM = 10000000
@@ -78,7 +80,8 @@ def get_html(url):
 
         except Exception as e:
             # print(e.__class__)
-            print('Re-obtain this link')
+            traceback.print_exc()
+            # print('Re-obtain this link')
 
 
 def get_url(name):
@@ -105,6 +108,7 @@ class BatDongSanParser(ParseHTML):
             try:                
                 return self.save_func(row)
             except:
+                traceback.print_exc()
                 continue
         
         return False
@@ -128,10 +132,12 @@ class BatDongSanParser(ParseHTML):
             return pd.read_csv(self.MODEL_PATH + config_model + ".csv").fillna('')
         except:
             e = sys.exc_info()
-            print("Error: ", e)
+            traceback.print_exc()
+
             try:
                 return pd.read_csv(self.MODEL_PATH + "general.csv").fillna('')
             except:
+                traceback.print_exc()    
                 return None
 
     def set_save_to_database(self):
@@ -161,10 +167,10 @@ class BatDongSanParser(ParseHTML):
         self.save_buffer.append(post)
 
     def stringify_children(self, node):
-        from lxml.etree import tostring
-        from itertools import chain
+        # print(str(node.tag))
+
         parts = ([node.text] +
-                 list(chain(*(self.stringify_children(c) for c in node.getchildren()))) +
+                 list(chain(*((self.stringify_children(c) + ("\n" if str(c.tag) == "div" else "")) for c in node.getchildren()))) +
                  [node.tail])
         # filter removes possible Nones in texts and tails
         return ''.join(filter(None, parts))
@@ -181,7 +187,7 @@ class BatDongSanParser(ParseHTML):
         else:
             _date = datetime.strptime(date_str, '%d/%m/%Y').date()
 
-        return _date
+        return _date.strftime("%d/%m/%Y")
 
 
     def parseData(self, status_parse):
@@ -195,8 +201,10 @@ class BatDongSanParser(ParseHTML):
             file = open(self.name_get + ".json", "r")
             post = file.readline()
         except:
+            traceback.print_exc()
+
             "nodata"
-        print(post)
+        # print(post)
         print("-" * 50)
 
         count = 1
@@ -211,6 +219,8 @@ class BatDongSanParser(ParseHTML):
                 for p in post:
                     post = post[p]
             except:
+                traceback.print_exc()
+
                 post = file.readline()
                 continue
 
@@ -255,6 +265,7 @@ class BatDongSanParser(ParseHTML):
             try:
                 doc["crawl_date"] = post["date"]
             except:
+                traceback.print_exc()
                 doc["crawl_date"] = str(date.today().strftime("%d/%m/%Y"))
 
             doc["parse_date"] = date.today().strftime("%d/%m/%Y")
@@ -292,16 +303,18 @@ class BatDongSanParser(ParseHTML):
                             try:
                                 _take = attr_lst[int(row['pos_take'])]
                                 if isinstance(_take, etree._Element):
+                                    
                                     attr = self.stringify_children(_take)
                                 elif isinstance(_take, etree._ElementUnicodeResult):
                                     attr = _take
                             except ValueError:
+                                # traceback.print_exc()
                                 position_regex = row['pos_take']
                                 _str = ""
                                 for element in attr_lst:
-                                    _str = strip_text(self.stringify_children(element)) + "<eof>"
+                                    __str = strip_text(self.stringify_children(element))
                                     # print("->> ", _str)
-                                    match = re.search(position_regex, _str)
+                                    match = re.search(position_regex, __str)
                                     if match:
                                         _str = match.group(1)
                                         # print(">> ", _str)
@@ -312,7 +325,7 @@ class BatDongSanParser(ParseHTML):
                             # print(">> full")
                             if isinstance(attr_lst[0], etree._Element):
                                 for element in attr_lst:
-                                    ele_str = strip_text(self.stringify_children(element))
+                                    ele_str = self.stringify_children(element)
                                     # print("->> ", ele_str)
                                     attr += " " + ele_str
                             elif isinstance(attr_lst[0], etree._ElementUnicodeResult):
@@ -332,6 +345,7 @@ class BatDongSanParser(ParseHTML):
                             _attr = _attr.group(1).strip()
                         # print(_attr)
                     except Exception:
+                        # traceback.print_exc()
                         _attr = attr
                     # print(_attr)
                     attr = _attr
@@ -342,13 +356,15 @@ class BatDongSanParser(ParseHTML):
                     if not _rex.search(attr):
                         attr = None
                 except:
+                    # traceback.print_exc()
                     ""
 
                 try:
                     _len = int(row["len_valid"])
-                    if len(attr) < _len or "<eof>" in attr:
+                    if len(attr) < _len:
                         attr = None
                 except:
+                    # traceback.print_exc()
                     ""
                 
                 if feature == "date":
@@ -356,6 +372,7 @@ class BatDongSanParser(ParseHTML):
                         _date = re.sub("(<!--.*?-->)", "", attr, flags=re.DOTALL)
                         attr = self.get_date(_date, post["date"])
                     except:
+                        # traceback.print_exc()
                         ""
 
                 if attr is None:
@@ -367,6 +384,7 @@ class BatDongSanParser(ParseHTML):
                 if detail["length"] == "" or detail["length"] == None:
                     detail["length"] = str(int(detail["surface"])//int(detail["width"]))
             except:
+                # traceback.print_exc()
                 ""  
 
             if none_attr_count / len(detail) > 0.6:
