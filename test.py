@@ -101,13 +101,13 @@ from datetime import datetime
 # print(list_legal)
 
 
-file = open("visited_post_log_batdongsan_nharieng.txt", "r")
-lines = file.readlines()
-new_lines = []
-for line in lines:
-    if len(line) > 1 and "ban-nha-rieng" in line:
-        new_lines.append(line)
-open("visited_post_log_batdongsan_nharieng2.txt","w").write("\n".join(set(new_lines)))
+# file = open("visited_post_log_batdongsan_nharieng.txt", "r")
+# lines = file.readlines()
+# new_lines = []
+# for line in lines:
+#     if len(line) > 1 and "ban-nha-rieng" in line:
+#         new_lines.append(line)
+# open("visited_post_log_batdongsan_nharieng2.txt","w").write("\n".join(set(new_lines)))
 
 # file = open("local_urls_log_batdongsan_nhapho_biethu.txt", "r")
 # lines = file.readlines()
@@ -116,3 +116,97 @@ open("visited_post_log_batdongsan_nharieng2.txt","w").write("\n".join(set(new_li
 #     if len(line) > 1 and ("ban-nha-biet-thu" in line or "ban-nha-mat-pho" in line):
 #         new_lines.append(line)
 # open("local_urls_log_batdongsan_nhapho_biethu2.txt","w").write("\n".join(set(new_lines)))
+# file_path = "data\\nhadat247\\parsed_nhadat247_canho.json"
+# file = open(file_path, "r")
+# data = file.read()
+# data = json.loads(data)
+# import traceback
+
+# converted = []
+# for post in data:
+#     price = post["detail"]["price"]
+#     surface = post["detail"]["surface"]
+#     try:
+#         surface = int(surface)
+#     except:
+#         surface = None
+
+#     price = price.strip().lower()
+#     if "/m" in price and surface is not None:
+#         price = price.split(" ")[0]
+#         print(price)
+#         try:
+#             price = price.split(",")
+#             price = int(price[0]) + int(price[1]) * pow(0.1, len(price[1]))
+#             print(price)
+            
+#         except:
+#             traceback.print_exc()
+#             try:
+#                 price = price.split(".")
+#                 price = int(price[0]) + int(price[1]) * pow(0.1, len(price[1]))
+#                 print(price)
+#             except:
+#                 traceback.print_exc()
+
+#                 continue
+#         price = int(surface*price)
+#         if price < 100:
+#             price *= 10
+#     else:
+#         continue
+#     print(">", price)
+    
+#     unit = "tỷ"
+#     price /= 1000
+#     if price < 1:
+#         unit = "triệu"
+#         price *= 1000
+
+#     post["detail"]["price"] = str(round(price,2)) + " " + unit
+#     print(post)
+#     # converted.append(post)
+# # print(len(converted))
+# file.close()
+
+# file = open(file_path + "x", "w")
+# file.write(json.dumps(converted, indent=5))
+
+
+# file = open("post_urls_batdongsan_nharieng.json","r")
+# data = []
+
+# i = 0
+# a = 0
+# s = 0
+# import traceback
+# post = file.readline()
+
+# while len(post) > 10:
+#     s += 1
+#     try:
+#         data_json = json.loads(post)
+#         for p in data_json:
+#             data_json = data_json[p]
+#         url = data_json["url"]
+#         if "ban-nha-rieng" in str(url):        
+#             a += 1
+#         # data.append(post)
+#     except:
+#         # traceback.print_exc()
+#         # print(post)
+#         # print(post)
+#         i += 1    
+#         data.append(post)
+#         break
+
+#     print(i,"/",a,"/",s)
+#     post = file.readline()
+
+# file.close()
+# file = open("test_nharieng.json","w")
+# file.write(json.dumps(data, indent=5))
+
+
+file = open("parsed_batdongsan_dat2.json","r")
+print(len(json.loads(file.read())))
