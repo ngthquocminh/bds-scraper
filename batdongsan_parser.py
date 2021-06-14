@@ -189,6 +189,13 @@ class BatDongSanParser(ParseHTML):
 
         return _date.strftime("%d/%m/%Y")
 
+    def check_type(self, url):
+        for key in ["ban-nha-rieng"]:
+            if key in url:
+                # print("ok")
+                return True
+
+        return False
 
     def parseData(self, status_parse):
         """
@@ -232,6 +239,8 @@ class BatDongSanParser(ParseHTML):
             #     passs = True
 
             post_url = post['url']
+            if not self.check_type(post_url):
+                continue
             post_config = post["parser"]
             post_type = post["type"]
             post_status = post["status"]
