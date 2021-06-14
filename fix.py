@@ -1,5 +1,5 @@
-file_name = "post_urls_chotot_dat.json"
-file_to =  "post_urls_chotot_dat1.json"
+file_name = "post_urls_batdongsan_nharieng.json"
+file_to =  "post_urls_batdongsan_nharieng0.json"
 file_to2 = "post_urls_chotot_dat2.json"
 
 def foo2():
