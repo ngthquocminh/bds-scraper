@@ -1,0 +1,5 @@
+python manage.py makemigrations Workers
+python manage.py migrate Workers
+python manage.py runserver
+
+worker01 win-pass: GCfR)uQlYY(-6&Ok)TE3zDn6VSsuhzmg
