@@ -5,3 +5,5 @@ post_*.json
 parsed_*.json
 visited_*.txt
 local_*.txt
+
+data
