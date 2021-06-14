@@ -5,6 +5,7 @@ import json
 import re
 import hashlib
 import urllib
+import traceback
 
 import validators
 import pandas as pd
