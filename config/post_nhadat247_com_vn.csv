@@ -1,19 +1,19 @@
 features,default,xpath,pos_take,regex_take,regex_valid,len_valid
-homepage,"nhadat247.com.vn",,,,,
-date,,"//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/div",,"ID:.*\|(.+?)\|.*",,5
-title,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/h1/text()",0,,,20
-category,,"//*[@id='tbl1']/tbody/tr","Loại tin rao(.+?)<eof>",,,3
-description,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[3]/div",,,,50
-region,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[1]/a[4]/text()",0,,,
-street,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[1]/a[1]/text()",0,".+Đường(.+)",,
-district,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[1]/a[3]/text()",0,,,
-user,,"//*[@id='tbl2']/tr","Tên liên hệ:(.+?)<eof>",,,2
-price,,"//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/span[1]/text()",0,,,3
-address,,"//*[@id='ContentPlaceHolder1_ProductDetail1_divlocation']","[Kk]hu [Vv]ực:.*[Tt]ại(.+)<eof>","Đường(.+)",,10
-surface,,"//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/span[2]/text()",0,"([0-9]+)",,2
-bedrooms,,"//*[@id='tbl1']/tbody/tr","Số phòng(.+?)<eof>",,,1
-toilets,,"//*[@id='tbl1']/tbody/tr","Số toilet(.+?)<eof>",,,1
-width,,"//*[@id='tbl1']/tbody/tr","Mặt tiền(.+?)<eof>","([0-9]+)",,1
+homepage,nhadat247.com.vn,,,,,
+date,,//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/div,,ID:.*\|(.+?)\|.*,,5
+title,,/html/body/div[5]/div[1]/div/div[1]/div[1]/h1/text(),0,,,20
+category,,//*[@id='tbl1']/tbody/tr,Lo?i tin rao(.+?)<eof>,,,3
+description,,/html/body/div[5]/div[1]/div/div[1]/div[1]/div[3]/div,,,,50
+region,,/html/body/div[5]/div[1]/div/div[1]/div[1]/div[1]/a[4]/text(),0,,,
+street,,/html/body/div[5]/div[1]/div/div[1]/div[1]/div[1]/a[1]/text(),0,.+�u?ng(.+),,
+district,,/html/body/div[5]/div[1]/div/div[1]/div[1]/div[1]/a[3]/text(),0,,,
+user,,//*[@id='tbl2']/tr,T�n li�n h?:(.+?)<eof>,,,2
+price,,//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/span[1]/text(),0,,,3
+address,,//*[@id='ContentPlaceHolder1_ProductDetail1_divlocation'],[Kk]hu [Vv]?c:.*[Tt]?i(.+)<eof>,�u?ng(.+),,10
+surface,,//*[@id='ContentPlaceHolder1_ProductDetail1_divprice']/span[2]/text(),0,([0-9]+),,2
+bedrooms,,//*[@id='tbl1']/tbody/tr,S? ph�ng(.+?)<eof>,,,1
+toilets,,//*[@id='tbl1']/tbody/tr,S? toilet(.+?)<eof>,,,1
+width,,//*[@id='tbl1']/tbody/tr,M?t ti?n(.+?)<eof>,([0-9]+),,1
 length,,,,,,1
-phone,,"/html/body/div[5]/div[1]/div/div[1]/div[1]/div[3]/div/div/a[1]/@href",0,"tel:([0-9]+)","0|\+84[0-9]+",9
+phone,,/html/body/div[5]/div[1]/div/div[1]/div[1]/div[3]/div/div/a[1]/@href,0,tel:([0-9]+),0|\+84[0-9]+,9
 legal,,,,,,2

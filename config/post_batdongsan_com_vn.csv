@@ -3,7 +3,7 @@ homepage,batdongsan.com.vn,,,,,
 date,,"//*[@id='product-detail-web']/div[6]/div[7]/ul/li[1]/span[2]/text()",0,,,5
 title,,"//*[@id='product-detail-web']/div[1]/h1/text()",0,,,20
 category,,"//*[@id='product-detail-web']/div[6]/div[2]/div/div[1]","^Loại tin đăng:(.+?)$",,,3
-description,,"//*[@id='product-detail-web']/div[6]/div[1]",,,,50
+description,,"//*[@id='product-detail-web']/div[6]/div[1]",,,,
 region,,"/html/body/div[1]/div[7]/div[1]/section/div[1]/div[3]/a[2]/text()",0,,,3
 street,,"//*[@id='product-detail-web']/div[2]","^.*Đường([^,]+),.*$",,,1
 district,,"/html/body/div[1]/div[7]/div[1]/section/div[1]/div[3]/a[3]/text()",0,,,3
