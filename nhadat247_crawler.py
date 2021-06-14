@@ -42,7 +42,7 @@ def save_list(data: list, file_name):
             file.write(str(row) + "\n")
         file.close()
 
-class BatDongSanCrawler(CrawlHTML):
+class NhaDat247Crawler(CrawlHTML):
     """
     """
 
