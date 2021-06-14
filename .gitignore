@@ -3,7 +3,6 @@ __pycache__/
 
 post_*.json
 parsed_*.json
-visited_*.txt
-local_*.txt
+*log*.txt
 
 data
