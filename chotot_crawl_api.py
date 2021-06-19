@@ -12,8 +12,8 @@ import re
 # pip install python-slugify
 
 LIMIT_POSTS_PER_REQUEST = 100
-CATE_ID = "1020"
-NUM_SPLIT = 50000
+CATE_ID = "1040" # {"nha":"1020","chung-cu":"1010","":""
+NUM_SPLIT = 20000
 
 parser = argparse.ArgumentParser()
 parser.add_argument("process", help="The number of processes you want to run")
@@ -37,9 +37,23 @@ cate_type_data = {
         3 : "Nhà ngõ", 
         2 : "Nhà biệt thự", 
         4 : "Nhà phố liền kề"
+    },
+    "1010" : {
+        1: "Chung cư",
+        2: "Căn hộ dịch vụ",
+        3: "Duplex",
+        4: "Penthouse",
+        5: "Tập thể",
+        6: "Officetel"
+    },
+    "1040" : {
+        1: "Đất thổ cư",
+        2: "Đất nền dự án",
+        3: "Đất công nghiệp",
+        4: "Đất nông nghiệp"
     }
 }
-
+print(cate_type_data["1020"][1])
 def get_cate_type(cate, type):
     try:
         return cate_type_data[cate][type]
@@ -169,7 +183,7 @@ def crawler(cate, process_index):
                 traceback.print_exc()
 
             _date       = str(get_date(safe_get(post,"date")))
-            _category   = get_cate_type(cate, safe_get(post,"house_type"))
+            _category   = get_cate_type(cate, safe_get(post,"land_type")) # land_type, house_type, apartment_type 
             _street_num = safe_get(post, "street_number")
             _street     = safe_get(post,"address")
             _street     = _street if isinstance(_street, str) and "Đường" in _street else None
@@ -182,7 +196,7 @@ def crawler(cate, process_index):
             _length     = safe_get(post,"length")
             _rooms      = safe_get(post,"rooms")
             _toilets    = safe_get(post,"toilets")
-            _price      = safe_get(post,"price")
+            _price      = safe_get(post,"price_string")
 
             doc = dict()
             
@@ -202,7 +216,7 @@ def crawler(cate, process_index):
             detail["street"]        = (_street.replace("Đường","").strip() if not re.search("Đường [0-9]+", _street) else _street) if isinstance(_street, str) else None
             detail["district"]      = _area.replace("Quận","").replace("Huyện","").strip() if isinstance(_area, str) and not re.search("Quận [0-9]+", _area) else _area
             detail["user"]          = safe_get(post,"account_name")
-            detail["price"]         = str(_price) if isinstance(_price, int) else None
+            detail["price"]         = _price.replace(",",".") if isinstance(_price, str) else None
             detail["address"]       = _address
             detail["surface"]       = str(_size) if isinstance(_size, int) else None
             detail["bedrooms"]      = str(_rooms) if isinstance(_rooms, int) else None
@@ -221,7 +235,7 @@ def crawler(cate, process_index):
                 count = 0
                 split_save_index += 1
 
-            # print(doc)
+            print(doc)
             finish = False
 
         api_index += 1
