@@ -71,7 +71,7 @@ def parserSetGetApi(request: request.HttpRequest, id=0):
     if request.method == "GET":
         site_name    = get_sitename(request.get_raw_uri())
         # print(set_name)
-        parser_set  = Parser.objects.raw("SELECT * FROM Workers_parser WHERE site={site_name}".format(site_name=site_name))
+        parser_set  = Parser.objects.raw("""SELECT * FROM Workers_parser WHERE site="{site_name}" """.format(site_name=site_name))
         serializers = ParserSerializer(parser_set, many=True)
         # print(serializers.data)
         return JsonResponse(serializers.data if isinstance(serializers.data, list) else [serializers.data], safe=False)
