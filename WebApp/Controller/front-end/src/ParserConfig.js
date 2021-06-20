@@ -29,14 +29,14 @@ export class ParserConfig extends Component{
         this.refreshList();
     }
 
-    deleteParser(id){
+    deleteParser(_id){
         if(window.confirm('Are you sure?')){
             fetch(process.env.REACT_APP_API+'parser/',{
                 method:'DELETE',
                 header:{'Accept':'application/json',
             'Content-Type':'application/json'},
             body:JSON.stringify({
-                id:id      
+                id:_id      
             })})
         }
     }
@@ -115,7 +115,7 @@ export class ParserConfig extends Component{
                                     </Button>
 
                                     <Button className="mr-2" variant="danger"
-                                        onClick={()=>this.deleteParser(parser.WorkerID)}>
+                                        onClick={()=>this.deleteParser(parser.id)}>
                                         Delete
                                     </Button>
                                 
