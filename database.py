@@ -5,26 +5,39 @@ import pymongo
 
 
 class MongoDB:
-    
+
+
     def __init__(self):
+
         self.client = MongoClient(
-            "mongodb://synapselynk"
-            ":SaHj2L86s2pC0YvvAdV26u25M74RDhaWhUglTyRsuKa0xrcFdfh9y1RZkTZQX55F12bpd6Dc3WqlBWWcvCI32Q==@synapselynk"
-            ".mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&retrywrites=false&maxIdleTimeMS=120000"
-            "&appName=@synapselynk@")
-        self.db = self.client.bds_database
+            "mongodb+srv://lvtn:minh1709@cluster0.978ef.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+        )
 
-    def status(self):
-        return self.db.command("serverStatus")
+        self.lvtn_database   = "lvtn_database"
+        self.parsed_db_name  = "parsed_db"
+        self.html_db_name    = "html_db"
 
-    def getdb(self):
-        return self.db
+        self.db_parsed = self.client[self.lvtn_database][self.parsed_db_name]
+        self.db_html  =  self.client[self.lvtn_database][self.html_db_name]
 
-    def insert_to(self, jsonrow=None):
-        if jsonrow is None:
-            return
-        result = self.db.parse_data_02.insert_one(jsonrow)
+    def insert_parsed_data(self, json_row=None):
+        if json_row is None:
+            return 
+        result = self.db_parsed.insert_one(json_row)
         return result
+
+    
+    def insert_html_data(self, json_row=None):
+        if json_row is None:
+            return 
+        result = self.db_html.insert_one(json_row)
+        return result
+
+    def query_html_db(self, query_dict: dict):        
+        return self.db_html.find(query_dict)
+
+    def query_parsed_db(self, query_dict: dict):        
+        return self.db_parsed.find(query_dict)
 
     def pprint(self, result: pymongo.results.InsertOneResult):
         pprint(result)
