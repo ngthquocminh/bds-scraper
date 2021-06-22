@@ -13,6 +13,7 @@ from django.http.response import JsonResponse
 from Workers.utility.test_worker import test_connection
 from Workers.models import Worker
 from Workers.serializers import ParserSerializer, WorkerSerializer
+from Workers.utility.test_parser import doTestOnParser
 
 # Create your views here.
 
@@ -107,6 +108,12 @@ def parserEditApi(request: request.HttpRequest, id=0):
             return JsonResponse("Deleted Failed!!",safe=False)
 
     
-    
+@csrf_exempt
+def testParserApi(request: request.HttpRequest):
+     if request.method == 'POST':
+
+        _data = JSONParser().parse(request)
+        dict_res = doTestOnParser(_data)
+        return JsonResponse("Added Failed!!", safe=False)
         
  
