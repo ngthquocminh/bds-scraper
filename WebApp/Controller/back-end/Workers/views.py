@@ -14,6 +14,7 @@ from Workers.utility.test_worker import test_connection
 from Workers.models import Worker
 from Workers.serializers import ParserSerializer, WorkerSerializer
 from Workers.utility.test_parser import doTestOnParser
+from Workers.utility.LibFunc import load_parser_set
 
 # Create your views here.
 
@@ -72,10 +73,7 @@ def parserSetGetApi(request: request.HttpRequest, id=0):
     if request.method == "GET":
         site_name    = get_sitename(request.get_raw_uri())
         # print(set_name)
-        parser_set  = Parser.objects.raw("""SELECT * FROM Workers_parser WHERE site="{site_name}" """.format(site_name=site_name))
-        serializers = ParserSerializer(parser_set, many=True)
-        # print(serializers.data)
-        return JsonResponse(serializers.data if isinstance(serializers.data, list) else [serializers.data], safe=False)
+        return JsonResponse(load_parser_set(site_name), safe=False)
 
 @csrf_exempt
 def parserEditApi(request: request.HttpRequest, id=0):    
@@ -110,10 +108,21 @@ def parserEditApi(request: request.HttpRequest, id=0):
     
 @csrf_exempt
 def testParserApi(request: request.HttpRequest):
-     if request.method == 'POST':
+    if request.method == 'POST':
 
-        _data = JSONParser().parse(request)
-        dict_res = doTestOnParser(_data)
-        return JsonResponse("Added Failed!!", safe=False)
-        
+        request = JSONParser().parse(request)
+        dict_res = doTestOnParser(request)
+        return JsonResponse(dict_res, safe=False)
+    
+    return {}
+
+@csrf_exempt
+def testParserApi(request: request.HttpRequest):
+    if request.method == 'POST':
+
+        request = JSONParser().parse(request)
+
+        return JsonResponse({}, safe=False)
+    
+    return {}
  
