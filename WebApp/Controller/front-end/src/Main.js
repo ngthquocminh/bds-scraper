@@ -7,7 +7,7 @@ import { WorkerSetup }  from './WorkersSetup';
 import { ParserConfig } from './ParserConfig';
 import { Navigation }   from './Navigation';
 import { WorkerController } from './WorkerController';
-
+import { ParserTesting } from './ParserTesting';
 import {BrowserRouter, Route, Switch} from 'react-router-dom';
 
 
@@ -24,6 +24,7 @@ function Main() {
             <Route path='/' component={HomePage} exact/>
             <Route path='/worker-setup' component={WorkerSetup}/>
             <Route path='/parser-config' component={ParserConfig}/>
+            <Route path='/parser-testing' component={ParserTesting}/>
             <Route path='/worker-control' component={WorkerController}/>
             </Switch>
         </div>
