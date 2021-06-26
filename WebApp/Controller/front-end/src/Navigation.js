@@ -17,7 +17,10 @@ export class Navigation extends Component{
                     Worker Setup
                 </NavLink>
                 <NavLink className="d-inline p-2 ml-3 bg-dark text-white" to="/parser-config">
-                    Worker Configuration
+                    Parser Config
+                </NavLink>
+                <NavLink className="d-inline p-2 ml-3 bg-dark text-white" to="/parser-testing">
+                    Parser Testing
                 </NavLink>
                 <NavLink className="d-inline p-2 ml-3 bg-dark text-white" to="/worker-control">
                     Worker Controller
