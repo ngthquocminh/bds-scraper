@@ -1,7 +1,9 @@
 {
     "python.pythonPath": "C:\\ProgramData\\Anaconda3\\python.exe",
     "cSpell.words": [
+        "Chotot",
         "globaldb",
+        "iterrows",
         "lvtn",
         "pymongo",
         "synapselynk"
