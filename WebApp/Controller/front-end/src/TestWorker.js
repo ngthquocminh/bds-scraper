@@ -16,7 +16,7 @@ export class TestWorker extends Component{
                     aria-labelledby="contained-modal-title-vcenter"
                     centered
                 >
-                    <Modal.Header clooseButton>
+                    <Modal.Header>
                         <Modal.Title id="contained-modal-title-vcenter">
                             Trying to connect to {this.props.workerName + " - " + this.props.workerIP}
                         </Modal.Title>
