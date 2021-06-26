@@ -10,7 +10,7 @@ export class ParserConfig extends Component{
 
     constructor(props){
         super(props);
-        this.state={parser_set:[], set_name:"bat-dong-san-com-vn", addModalShow:false, editModalShow:false, editModalData:{}}
+        this.state={parser_set:[], set_name:"", addModalShow:false, editModalShow:false, editModalData:{}}
     }
 
     refreshList(){
@@ -74,6 +74,12 @@ export class ParserConfig extends Component{
                 >
                     batdongsan.com.vn
                 </Button>
+                <Button 
+                variant="info"
+                onClick={(event)=>this.setState({set_name:"cho-tot-com"})}
+                >
+                    chotot.com
+                </Button>
                 <hr/>
                 <Table className="mt-4" striped bordered hover size="sm">
                     <thead>
@@ -83,7 +89,7 @@ export class ParserConfig extends Component{
                         <th>Xpath</th>
                         <th>Pos_take</th>
                         <th>Regex_take</th>
-                        <th>Regec_valid</th>
+                        <th>Regex_valid</th>
                         <th>Len_valid</th>
                         <th>Option</th>
 
@@ -147,6 +153,8 @@ export class ParserConfig extends Component{
                         setName={this.state.set_name}
                     />
                 </ButtonToolbar>
+
+                <hr/>
             </div>
         );
     }
