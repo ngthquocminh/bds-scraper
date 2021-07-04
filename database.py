@@ -17,10 +17,14 @@ class MongoDB:
         self.parsed_db_name  = "parsed_db"
         self.html_db_name    = "html_db"
         self.worker_db_name  = "worker_info"
+        self.logs_db_name    = "worker_logs"
 
-        self.db_parsed = self.client[self.main_database][self.parsed_db_name]
-        self.db_html  =  self.client[self.main_database][self.html_db_name]
+
+        self.db_parsed  = self.client[self.main_database][self.parsed_db_name]
+        self.db_html    =  self.client[self.main_database][self.html_db_name]
         self.db_worker  =  self.client[self.main_database][self.worker_db_name]
+        self.db_logs    =  self.client[self.main_database][self.worker_logs]
+
 
     def insert_parsed_data(self, json_row=None, many=False):
         result = None
@@ -59,7 +63,23 @@ class MongoDB:
         return [i for i in res]
 
     def query_wokers_info(self, worker_id):
-        res = self.db_worker.find({"worker_id": worker_id},limit=1)
+        res = self.db_worker.find_one({"worker_id": worker_id})
+        return res[0] if len(res) > 0 else None
+
+    def update_wokers_info(self, worker_id, worker_info):
+        res = self.db_parsed.update_one({"worker_id": worker_id}, {"$set":{"info":worker_info}})
+        return res
+
+    def query_wokers_logs(self, worker_id, task_id):
+        res = self.db_logs.find_one({"$and":[{"worker_id":worker_id},{"task_id":task_id}]})
+        return res[0] if len(res) > 0 else None
+
+    def create_wokers_log(self, worker_init_log:dict):
+        res = self.db_logs.insert_one(worker_init_log)
+        return res
+
+    def update_wokers_log(self, worker_id, task_id, saved_posts:list, error_posts:list):
+        res = self.db_logs.update_one({"$and":[{"worker_id":worker_id},{"task_id":task_id}]},{"$set":{"saved_posts":saved_posts,"error_posts":error_posts}})
         return res
 
     def update_wokers_info(self, worker_id, worker_info):
@@ -93,8 +113,17 @@ class DBObject: # Interface
     def query_wokers_info(self, worker_id):
         return self.db_object.query_wokers_info(worker_id)
 
+    def query_wokers_logs(self, worker_id, task_id):
+        return self.db_object.query_wokers_logs(worker_id, task_id)
+
     def update_wokers_info(self, worker_id, worker_info):
         return self.db_object.update_wokers_info(worker_id, worker_info)
+
+    def create_wokers_log(self, worker_init_log:dict):
+        return self.db_object.create_wokers_log(worker_init_log)
+
+    def update_wokers_log(self, worker_id, start_time, saved_posts:list, error_posts:list):
+        return self.db_object.update_wokers_log(worker_id,start_time,saved_posts,error_posts)
 
     def pprint(self, result):
         pprint(result)
