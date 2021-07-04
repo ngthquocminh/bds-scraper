@@ -13,7 +13,7 @@ from django.http.response import JsonResponse
 from Workers.utility.test_worker import test_connection
 from Workers.models import Worker
 from Workers.serializers import ParserSerializer, WorkerSerializer
-from Workers.utility.test_parser import doTestOnParser
+from Workers.utility.test_parser import doTestOnParser, searchPostHtml
 from Workers.utility.LibFunc import load_parser_set
 
 # Create your views here.
@@ -24,7 +24,6 @@ def workerApi(request: request.HttpRequest, id=0):
         
         workers = Worker.objects.all()
         worker_serializer = WorkerSerializer(workers, many=True)
-        # print(worker_serializer.data)
         return JsonResponse(worker_serializer.data, safe=False)
 
     elif request.method == 'POST':
@@ -111,18 +110,20 @@ def testParserApi(request: request.HttpRequest):
     if request.method == 'POST':
 
         request = JSONParser().parse(request)
+        if "model_name_for_all" in request and not request["model_name_for_all"] in ["bat-dong-san-com-vn","cho-tot-com","nha-dat-247-com-vn"]:
+            request.pop("model_name_for_all")
+
         dict_res = doTestOnParser(request)
         return JsonResponse(dict_res, safe=False)
     
-    return {}
+    return JsonResponse([], safe=False)
 
 @csrf_exempt
-def testParserApi(request: request.HttpRequest):
+def loadPostHtml(request: request.HttpRequest):
     if request.method == 'POST':
-
         request = JSONParser().parse(request)
-
-        return JsonResponse({}, safe=False)
+        data = searchPostHtml(request)
+        return JsonResponse(data, safe=False)
     
-    return {}
+    return JsonResponse([], safe=False)
  

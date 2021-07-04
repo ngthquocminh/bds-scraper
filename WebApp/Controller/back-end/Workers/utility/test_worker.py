@@ -2,9 +2,9 @@ import pika
 
 
 def test_connection(ip, name, password):
-    credentials = pika.PlainCredentials('worker01', 'worker01')
+    credentials = pika.PlainCredentials(name, password)
     parameters = pika.ConnectionParameters(
-        '18.217.53.191',
+        ip,
         5672,
         '/',
         credentials)

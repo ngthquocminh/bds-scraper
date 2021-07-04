@@ -26,13 +26,13 @@ def parse(data, many:bool=False, model_name=None):
         result = []
         for post in data:
             
-            engine = ParserEngines(post=post, parser_model=parser_model)
+            engine = ParserEngines(post=post,parser_model=parser_model,test_mode=True)
             _r = engine.process_post()
             result.append(_r["doc"] if _r["code"] == "OK" else {})
         return result
     elif isinstance(data,dict):
         
-        engine = ParserEngines(post=date, parser_model=parser_model)
+        engine = ParserEngines(post=date, parser_model=parser_model,test_mode=True)
         _r = engine.process_post()
         return _r["doc"] if _r["code"] == "OK" else {}
 
@@ -43,9 +43,10 @@ def parse(data, many:bool=False, model_name=None):
 
 
 class ParserEngines(object):
-    def __init__(self, post:dict, parser_model:ParserModelSelector):
+    def __init__(self, post:dict, parser_model:ParserModelSelector, test_mode:bool=True):
         self.__post = post
-        self.parser_model = parser_model
+        self.__parser_model = parser_model
+        self.__test_mode = test_mode
     
     def process_post(self):   
         _status = "XX"
@@ -59,7 +60,7 @@ class ParserEngines(object):
         # print("Status: ", post_status)
             
         doc = dict()
-
+        doc["parse_score"] = 0
         doc["url_hash"] = hashlib.md5(post_url.encode()).hexdigest()
         doc["url"] = post_url
 
@@ -74,22 +75,25 @@ class ParserEngines(object):
 
         page_source = clean_trash(self.__post['html'])
 
-        if self.parser_model == None:
-            self.parser_model = ParserModelSelector(_url=post_url, _html=page_source)
-        if self.parser_model.get_model() is not None:
+        if self.__parser_model == None:
+            self.__parser_model = ParserModelSelector(_url=post_url, _html=page_source)
+        if self.__parser_model.get_model() is not None:
             def date_convert(attr):
                 try:
                     crawl_date = datetime.strptime(self.__post["date"], '%d/%m/%Y').date()
-                    post_date = self.parser_model.get_date(attr,crawl_date)
+                    post_date = self.__parser_model.get_date(attr,crawl_date)
                     return post_date.strftime("%d/%m/%Y") if post_date else None
                 except:
                     # traceback.print_exc()
                     return None
 
-            parser_obj = ParserObject(page_source, self.parser_model.get_model())
+            parser_obj = ParserObject(page_source, self.__parser_model.get_model())
             result  = parser_obj.parse_html({"date":date_convert})
 
-            if parser_obj.parser_result()["eff"] > 0.5:
+            if self.__test_mode:
+                doc["parse_score"] = parser_obj.parser_result()["eff"]
+
+            if parser_obj.parser_result()["eff"] > 5.0 or self.__test_mode:
                 doc["detail"] = result
                 _status = "OK"
 

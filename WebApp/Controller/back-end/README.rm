@@ -3,5 +3,6 @@ python manage.py migrate Workers
 python manage.py runserver
 
 worker01 win-pass: GCfR)uQlYY(-6&Ok)TE3zDn6VSsuhzmg
+worker02 win-pass: $6LP*OyDf3TCB9ycgiM%axwmQse;rs=;
 pip install django-cors-headers
 pip install djangorestframework
