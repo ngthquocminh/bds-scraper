@@ -59,7 +59,8 @@ export class WorkerSetup extends Component{
                 _IP:this.state.testWorker._IP,
                 _name:this.state.testWorker._name,
                 _response:data
-        }}));
+            }})
+        );
 
     }
     render(){

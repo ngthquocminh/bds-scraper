@@ -45,7 +45,7 @@ export class AddNewParser extends Component{
                     aria-labelledby="contained-modal-title-vcenter"
                     centered
                 >
-                    <Modal.Header clooseButton>
+                    <Modal.Header>
                         <Modal.Title id="contained-modal-title-vcenter">
                             Add New Worker
                         </Modal.Title>

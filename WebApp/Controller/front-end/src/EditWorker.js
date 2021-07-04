@@ -40,7 +40,7 @@ size="lg"
 aria-labelledby="contained-modal-title-vcenter"
 centered
 >
-    <Modal.Header clooseButton>
+    <Modal.Header>
         <Modal.Title id="contained-modal-title-vcenter">
             Edit Worker
         </Modal.Title>

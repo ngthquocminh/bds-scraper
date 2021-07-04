@@ -46,64 +46,64 @@ size="lg"
 aria-labelledby="contained-modal-title-vcenter"
 centered
 >
-    <Modal.Header clooseButton>
+    <Modal.Header>
         <Modal.Title id="contained-modal-title-vcenter">
-            Edit Worker
+            Parser Test Result
         </Modal.Title>
     </Modal.Header>
     <Modal.Body>
         <Row>
             <Col sm={6}>
             <Form onSubmit={this.handleSubmit}>
-                    <Form.Group controlId="id" >
+                    <Form.Group controlId="xid" >
                         <Form.Label>ID</Form.Label>
                         <Form.Control type="text" name="id" required disabled
                         defaultValue={this.props.editData.id}
                         placeholder="id"/>
                     </Form.Group>
-                    <Form.Group controlId="site" >
+                    <Form.Group controlId="xsite" >
                         <Form.Label>Site</Form.Label>
                         <Form.Control type="text" name="site" required disabled
                         defaultValue={this.props.editData.site}
                         placeholder="site"/>
                     </Form.Group>
-                    <Form.Group controlId="features">
+                    <Form.Group controlId="xfeatures">
                         <Form.Label>Features</Form.Label>
                         <Form.Control type="text" name="features" required 
                         defaultValue={this.props.editData.features}
                         placeholder="features name"/>
                     </Form.Group>
-                    <Form.Group controlId="default">
+                    <Form.Group controlId="xdefault">
                         <Form.Label>Default</Form.Label>
                         <Form.Control type="text" name="default"  
                         defaultValue={this.props.editData.default}
                         placeholder="default"/>
                     </Form.Group>
-                    <Form.Group controlId="xpath">
+                    <Form.Group controlId="xxpath">
                         <Form.Label>Xpath</Form.Label>
                         <Form.Control type="text" name="xpath"  
                         defaultValue={this.props.editData.xpath}
                         placeholder="Xpath"/>
                     </Form.Group>
-                    <Form.Group controlId="pos_take">
+                    <Form.Group controlId="xpos_take">
                         <Form.Label>Pos_take</Form.Label>
                         <Form.Control type="text" name="pos_take"  
                         defaultValue={this.props.editData.pos_take}
                         placeholder="Pos_take"/>
                     </Form.Group>
-                    <Form.Group controlId="pegex_take">
+                    <Form.Group controlId="xpegex_take">
                         <Form.Label>Regex_take</Form.Label>
                         <Form.Control type="text" name="regex_take"  
                         defaultValue={this.props.editData.regex_take}
                         placeholder="Regex_take"/>
                     </Form.Group>
-                    <Form.Group controlId="pegex_valid">
+                    <Form.Group controlId="xpegex_valid">
                         <Form.Label>Regex_valid</Form.Label>
                         <Form.Control type="text" name="regex_valid" 
                         defaultValue={this.props.editData.regex_valid} 
                         placeholder="Regex_valid"/>
                     </Form.Group>
-                    <Form.Group controlId="len_valid ">
+                    <Form.Group controlId="xlen_valid ">
                         <Form.Label>Len_valid</Form.Label>
                         <Form.Control type="number" name="len_valid" required
                         defaultValue={this.props.editData.len_valid}

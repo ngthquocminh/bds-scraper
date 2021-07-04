@@ -6,7 +6,7 @@ import { ButtonToolbar }    from 'react-bootstrap';
 import { AddNewParser }             from './AddNewParser';
 import { EditParser }               from './EditParser';
 
-export class WorkerController extends Component{
+export class ParseController extends Component{
 
     constructor(props){
         super(props);

@@ -40,37 +40,17 @@ export class ParserConfig extends Component{
             })})
         }
     }
-    send_test_request(event, worker_id){
-        event.preventDefault();
-        fetch(process.env.REACT_APP_API +'test-worker/', {
-            method:'POST',
-            headers:{
-                'Accept':'application/json',
-                'Content-Type':'application/json'
-            },
-            body:JSON.stringify({
-                id:worker_id      
-            })
-        })
-        .then(response=>response.json())
-        .then(
-            data=>this.setState({testWorker:{
-                _show:true,
-                _IP:this.state.testWorker._IP,
-                _name:this.state.testWorker._name,
-                _response:data
-        }}));
 
-    }
     render(){
         const {parser_set, set_name, editModalData}=this.state;
         let addModalClose=()=>this.setState({addModalShow:false});
         let editModalClose=()=>this.setState({editModalShow:false});
         return(
-            <div className="container">
+            <div className="ml-5 mr-5">
                 <Button 
                 variant="info"
                 onClick={(event)=>this.setState({set_name:"bat-dong-san-com-vn"})}
+                className="m-2"
                 >
                     batdongsan.com.vn
                 </Button>
