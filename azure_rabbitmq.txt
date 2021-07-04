@@ -2,6 +2,8 @@
 
 sudo rabbitmq-plugins enable rabbitmq_management
 
+rabbitmqctl.bat status
+
 1. Create user
 
 rabbitmqctl add_user username password
