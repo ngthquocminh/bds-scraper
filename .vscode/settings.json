@@ -2,10 +2,29 @@
     "python.pythonPath": "C:\\ProgramData\\Anaconda3\\python.exe",
     "cSpell.words": [
         "Chotot",
+        "KHTML",
+        "Ph",
+        "Phường",
+        "Popen",
+        "biet",
+        "biethu",
+        "canho",
         "globaldb",
         "iterrows",
         "lvtn",
+        "ng",
+        "nhadat",
+        "nhapho",
+        "nharieng",
+        "prefs",
+        "psutil",
         "pymongo",
-        "synapselynk"
-    ]
+        "rieng",
+        "synapselynk",
+        "tri",
+        "triệu",
+        "u",
+        "Đường"
+    ],
+    "git.ignoreLimitWarning": true
 }
