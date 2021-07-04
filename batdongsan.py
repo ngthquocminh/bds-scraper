@@ -4,6 +4,7 @@ import json
 import re
 import hashlib
 import traceback
+import time
 
 import validators
 from datetime import datetime, date
@@ -42,6 +43,7 @@ class BatDongSanCrawler(CrawlHTML):
 
         self.__current_url = ""
         self.__failed_urls = []
+        self.__saved_post  = []
     
         self.file_log_visited_url   = "visited_post_log_batdongsan_%s.txt"%(self.post_type)
         self.file_log_new_url       = "local_urls_log_batdongsan_%s.txt"%(self.post_type)
@@ -58,8 +60,20 @@ class BatDongSanCrawler(CrawlHTML):
         self.db_object = DBObject()
         self.browser = Browser(headless=False)
         
-        self.__crawling_info = {"status":"crawling","str_info":""}
+        worker_info = self.db_object.query_wokers_info(Settings.worker_id)
+        task_id = worker_info["task_id"] if (worker_info and worker_info["task_id"]) else (int)(time.time())
 
+        self.__crawling_info = {"task_id":task_id,"status":"crawling","str_info":""}
+        self.__crawling_log  = {"worker_id":Settings.worker_id, "task_id":task_id, "task_info":self.__str_info, "saved_posts":[], "error_posts":[]}
+
+        if worker_info["task_id"] is None:
+            self.db_object.create_wokers_log(self.__crawling_log)
+            self.update_crawling_status_info(0,0)
+        else:
+            log = self.db_object.query_wokers_logs(Settings.worker_id,task_id)
+            if log is not None:
+                self.__saved_post = log["saved_posts"]
+                self.__failed_urls = log["error_posts"]
 
         print("Init crawler")
 
@@ -67,6 +81,12 @@ class BatDongSanCrawler(CrawlHTML):
     def update_crawling_status_info(self, num_post, num_error):
         self.__crawling_info["str_info"] = self.__str_info + "Numpost: %d, Error: %d"%(num_post, num_error)
         self.db_object.update_wokers_info(Settings.worker_id, self.__crawling_info)
+
+    def update_crawling_log(self, saved_posts:list, error_posts:list):
+        self.__crawling_log["saved_posts"] = saved_posts
+        self.__crawling_log["error_posts"] = error_posts
+
+        self.db_object.update_wokers_log(Settings.worker_id, self.__crawling_log["task_id"], self.__crawling_log["saved_posts"])
 
     def get_html_and_soup_from_url(self, url):
         """
@@ -134,6 +154,7 @@ class BatDongSanCrawler(CrawlHTML):
             visited_post = list(open(self.file_log_visited_url, "r").readlines())
         except:
             ""
+
         return local_urls, visited_post
 
 
@@ -183,7 +204,7 @@ class BatDongSanCrawler(CrawlHTML):
         print("START...")
 
         local_urls, visited_post = self.load_init_url()
-        post_count = 0
+        post_count = len(self.__saved_post)
         while local_urls:
             self.__current_url = local_urls.pop(0)
         
@@ -205,12 +226,15 @@ class BatDongSanCrawler(CrawlHTML):
             if isinstance(self.buffer, list) and len(self.buffer) == self.SAVE_CHECK_POINT:
                 self.save_data()
                 self.update_crawling_status_info(post_count, len(self.__failed_urls))
+                self.update_crawling_log()
                 save_list(local_urls, self.file_log_new_url)
                 save_list(visited_post, self.file_log_visited_url)
 
             print("  >> num: ", post_count)           
 
+        # finishing
         self.save_data()
+
         print('CRAWLING DONE')
 
 
