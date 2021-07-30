@@ -11,3 +11,4 @@ requests
 pika
 pymongo
 azure-cosmos
+certifi
