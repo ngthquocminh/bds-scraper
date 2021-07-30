@@ -9,6 +9,7 @@ class MongoDB:
 
         self.client = MongoClient(
             "mongodb+srv://lvtn:minh1709@cluster0.978ef.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+            ,ssl=True,ssl_cert_reqs='CERT_NONE'
         )
 
         self.main_database   = "lvtn_database"
