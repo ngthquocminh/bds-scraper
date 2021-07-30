@@ -5,7 +5,7 @@ import pandas as pd
 import re
 from lxml import etree, html
 
-from Workers.utility.LibFunc import strip_text, stringify_children
+from LibFunc import strip_text, stringify_children
 
 
 class ParserObject(object):
