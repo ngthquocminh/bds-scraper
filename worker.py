@@ -2,10 +2,9 @@ import sys
 import os
 
 from batdongsan import BatDongSanCrawler
-from ParserEngines import ParserEngines
 import traceback
-from LibFunc import doParse
-from reciever import message_loads, message_dumps
+from ParserEngines import doParse
+from reciever import message_loads
 # from batdongsan import BatDongSanCrawler
 
 
