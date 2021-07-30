@@ -5,10 +5,8 @@ import json
 import re
 import hashlib
 import urllib
-import traceback
 
 import validators
-import pandas as pd
 from slugify import slugify
 from datetime import datetime, date, timedelta
 from time import time
@@ -19,18 +17,10 @@ from urllib.parse import urlparse
 from urllib.parse import urljoin
 
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException
-from selenium.common.exceptions import StaleElementReferenceException
-from selenium.common.exceptions import ElementClickInterceptedException
-import selenium.common.exceptions
-from selenium.webdriver import ActionChains
-import logging
-from selenium.webdriver.remote.remote_connection import LOGGER
 # LOGGER.setLevel(logging.WARNING)
 
 

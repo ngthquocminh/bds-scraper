@@ -1,57 +1,57 @@
 import sys
 import os
-import urllib.request
-from bs4 import BeautifulSoup
-from multiprocessing import Process
-import pandas as pd
-import bs4
-import multiprocessing
 
-import requests
-import urllib.request
-import shutil
-import csv
-import time
+from batdongsan import BatDongSanCrawler
+from ParserEngines import ParserEngines
+import traceback
+from LibFunc import doParse
+from reciever import message_loads, message_dumps
+# from batdongsan import BatDongSanCrawler
 
-import re
-import hashlib
-from bs4 import BeautifulSoup
-from selenium import webdriver
-from datetime import datetime
-from urllib.parse import urlsplit
-from urllib.parse import urlparse
-from urllib.parse import urljoin
-from elasticsearch import Elasticsearch
 
-from batdongsan_parser import BatDongSanParser
-from batdongsan_crawler import BatDongSanCrawler
-
-def start_crawling():
+def start_crawling(date_from=None, date_to=None, post_type=None, all_date:bool = False):
     ""
-    canho = ["https://nhadat247.com.vn/ban-can-ho-chung-cu.html"]
-    nha = ["https://nhadat247.com.vn/ban-nha-rieng.html", "https://nhadat247.com.vn/ban-nha-biet-thu-lien-ke.html", "https://nhadat247.com.vn/ban-nha-mat-pho.html"]
-    dat = ["https://nhadat247.com.vn/ban-dat-nen-du-an.html", "https://nhadat247.com.vn/ban-dat.html"]
-    crawler = BatDongSanCrawler(canho,"1/1/2018", "29/5/2021", "nha")
-    crawler.obtainData("post_urls_nhadat247_nha")
+    crawler = BatDongSanCrawler(post_type=post_type)
+    crawler.obtain_data()
 
 
-def html_parser():
+def start_parsing():
     ""
-    parser = BatDongSanParser("post_urls_nhadat247_canho", "parsed_nhadat247_canho")
-    # parser.set_save_to_database()
-    parser.parseData(0)
+    doParse()
 
-
-def main():
-    # start_crawling()
-    html_parser()
+def main(params):
+    try:
+        if params["command"] == "crawl":
+            date_from = params["post-date"].split("_")[0]
+            date_to   = params["post-date"].split("_")[1]
+            post_type = params["type"]
+            start_crawling(date_from=date_from, date_to=date_to, post_type=post_type)
+        elif params["command"] == "parse":
+            list_post = params["post"].split("_")
+            start_parsing(list_post)
+        elif params["command"] == "resume":
+            ""
+        return True
+    except:
+        traceback.print_exc()
+        return False
 
 
 if __name__ == '__main__':
+
+    args = sys.argv[1:]
+
+    params = message_loads(" ".join(args))
+
+    import os
+    pid = os.getpid()
+    print(sys.argv)
+    open("data.lock","w").write(str(pid))
+
     try:
-        main()
+        main(params)
     except KeyboardInterrupt:
-        print('Interrupted')
+        # print('Interrupted')
         try:
             sys.exit(0)
         except SystemExit:

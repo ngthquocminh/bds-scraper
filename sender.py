@@ -1,27 +1,41 @@
 #!/usr/bin/env python
 import pika
+import sys
+import traceback
 
-# parameters = pika.ConnectionParameters(host='localhost')
-credentials = pika.PlainCredentials('worker01', 'worker01--')
-parameters = pika.ConnectionParameters('18.217.53.191',
-                                       5672,
-                                       '/',
-                                       credentials)
-try:
+if __name__ == '__main__':
+    args = sys.argv
 
-    connection = pika.BlockingConnection(parameters)
+    parameters = pika.ConnectionParameters(host='localhost')
+    # credentials = pika.PlainCredentials('worker02', 'worker02')
+    # parameters = pika.ConnectionParameters('3.142.90.161',
+    #                                        5672,
+    #                                        '/',
+    #                                        credentials)
+    try:
 
-    channel = connection.channel()
+        connection = pika.BlockingConnection(parameters)
 
-    channel.queue_declare(queue='hello1')
+        channel = connection.channel()
 
-    channel.basic_publish(exchange='', routing_key='hello1', body='Hello World!')
-    print(" [x] Sent 'Hello World!'")
-    connection.close()
+        channel.queue_declare(queue='hello')
 
-except pika.exceptions.ProbableAuthenticationError:
-    print("Login failed")
-except pika.exceptions.AMQPConnectionError:
-    print("Can not reach the client")
-except:
-    print("Unknow error")
+        channel.basic_publish(exchange='', routing_key='hello', body=" ".join(args[1:]))
+        print(" [x] Sent %s"%args[1])
+        connection.close()
+
+    except pika.exceptions.ProbableAuthenticationError:
+        print("Login failed")
+    except pika.exceptions.AMQPConnectionError:
+        print("Can not reach the client")
+    except:
+        print("Unknown error")
+        traceback.print_exc()
+
+# """
+# batdongsan.com.vn
+# chotot.com
+# nhadat247.com.vn
+# command:crawl site:batdongsan.com.vn post-date:08-2021_12-2021 shield:0 type:house limit:1000
+
+# """

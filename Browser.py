@@ -5,6 +5,8 @@ import traceback
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 
 class Browser(object):
     CHROME_DRIVER = """\chrome-driver\chromedriver.exe"""

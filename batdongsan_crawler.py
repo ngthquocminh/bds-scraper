@@ -154,7 +154,7 @@ class BatDongSanCrawler(CrawlHTML):
             try:
                 self.driver.get(url)
                 
-                element_present = EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/footer"))
+                element_present = EC.presence_of_element_located((By.XPATH, "/html/body/footer"))
                 WebDriverWait(self.driver, self.TIMEOUT).until(element_present)
                 
                 html = self.driver.page_source
@@ -201,9 +201,15 @@ class BatDongSanCrawler(CrawlHTML):
     def obtainData(self, file_name):
         print("START...")
         # local_urls = self.seed_url
-        local_urls = open("local_urls_log_batdongsan_" + self.post_type + ".txt", "r").readlines()
-        visited_post = open("visited_post_log_batdongsan_"+ self.post_type + ".txt", "r").readlines()
+        try:
+            local_urls = open("local_urls_log_batdongsan_" + self.post_type + ".txt", "r").readlines()
+            visited_post = open("visited_post_log_batdongsan_"+ self.post_type + ".txt", "r").readlines()
+        except:
+            local_urls = self.seed_url
+            visited_post = []
+
         while local_urls:
+            
             url = local_urls.pop(0)
         
             if len(url) < 10 and (url in visited_post or not self.check_type(url)):

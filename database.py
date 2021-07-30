@@ -1,8 +1,6 @@
-import re
 from pymongo import MongoClient
 from pprint import pprint
 from azure.cosmos import exceptions, CosmosClient, PartitionKey
-import pymongo
 
 class MongoDB:
     ASC = 1
@@ -15,16 +13,33 @@ class MongoDB:
 
         self.main_database   = "lvtn_database"
         self.parsed_db_name  = "parsed_db"
-        self.html_db_name    = "html_db"
+        self.html_db_name    = "html_db_test"
         self.worker_db_name  = "worker_info"
         self.logs_db_name    = "worker_logs"
-
+        self.db_parser_name  = "parser_model"
 
         self.db_parsed  = self.client[self.main_database][self.parsed_db_name]
-        self.db_html    =  self.client[self.main_database][self.html_db_name]
-        self.db_worker  =  self.client[self.main_database][self.worker_db_name]
-        self.db_logs    =  self.client[self.main_database][self.worker_logs]
+        self.db_html    = self.client[self.main_database][self.html_db_name]
+        self.db_worker  = self.client[self.main_database][self.worker_db_name]
+        self.db_logs    = self.client[self.main_database][self.logs_db_name]
+        self.db_parser  = self.client[self.main_database][self.db_parser_name]
 
+
+    def get_parser_model(self,parser_name):
+        res = self.db_parser.find({"site":parser_name})   
+        return [i for i in res]
+
+    def update_parser_attr(self,data:dict):
+        res = self.db_parser.update_one({"id": data["id"]}, {"$set":{"$and":[{attr:data[attr]} for attr in data]}})
+        return res
+
+    def insert_parser_attr(self,data:dict):
+        res = self.db_parser.insert_one(data)
+        return res
+
+    def delete_parser_attr(self,id:str):
+        res = self.db_parser.delete_one({"id":id})
+        return res
 
     def insert_parsed_data(self, json_row=None, many=False):
         result = None
@@ -42,7 +57,7 @@ class MongoDB:
     
     def insert_html_data(self, json_row=None, many=False):
         result = None
-        if json_row is None:
+        if json_row is None or len(json_row)==0:
             return 
         if isinstance(json_row,dict) and not many:
             result = self.db_html.insert_one(json_row)
@@ -64,15 +79,15 @@ class MongoDB:
 
     def query_wokers_info(self, worker_id):
         res = self.db_worker.find_one({"worker_id": worker_id})
-        return res[0] if len(res) > 0 else None
+        return res["info"] if "info" in res and isinstance(res["info"],dict) else {}
 
     def update_wokers_info(self, worker_id, worker_info):
-        res = self.db_parsed.update_one({"worker_id": worker_id}, {"$set":{"info":worker_info}})
+        res = self.db_worker.update_one({"worker_id": worker_id}, {"$set":{"info":worker_info}})
         return res
 
     def query_wokers_logs(self, worker_id, task_id):
         res = self.db_logs.find_one({"$and":[{"worker_id":worker_id},{"task_id":task_id}]})
-        return res[0] if len(res) > 0 else None
+        return res
 
     def create_wokers_log(self, worker_init_log:dict):
         res = self.db_logs.insert_one(worker_init_log)
@@ -83,7 +98,19 @@ class MongoDB:
         return res
 
     def update_wokers_info(self, worker_id, worker_info):
-        res = self.db_parsed.update_one({"worker_id": worker_id}, {"$set":{"info":worker_info}})
+        res = self.db_worker.update_one({"worker_id": worker_id}, {"$set":{"info":worker_info}})
+        return res
+
+    def set_shield_on(self, worker_id):
+        res =self.db_worker.update_one({"$and":[{"worker_id": worker_id},{"info.status":{"$regex":r"^.*crawling.*$"}}]},{"$set":{"info.status":"(anti)crawling"}})
+        return res
+
+    def set_shield_off(self, worker_id):
+        res = self.db_worker.update_one({"$and":[{"worker_id": worker_id},{"info.status":{"$regex":r"^.*crawling.*$"}}]},{"$set":{"info.status":"crawling"}})
+        return res
+
+    def cancel_task(self, worker_id):
+        res = self.db_worker.update_one({"worker_id": worker_id},{"$set":{"info":None}})
         return res
 
     def pprint(self, result):
@@ -94,6 +121,12 @@ class DBObject: # Interface
 
     def __init__(self):
         self.db_object = MongoDB()
+
+    def get_parser_model(self,parser_name):
+        return self.db_object.get_parser_model(self,parser_name)
+
+    def cancel_task(self, worker_id):
+        return self.db_object.cancel_task(worker_id)  
 
     def get_collection(self,collection_name:str):
         return self.db_object.get_collection(collection_name)  
@@ -125,6 +158,12 @@ class DBObject: # Interface
     def update_wokers_log(self, worker_id, start_time, saved_posts:list, error_posts:list):
         return self.db_object.update_wokers_log(worker_id,start_time,saved_posts,error_posts)
 
+    def set_shield_on(self, worker_id):
+        return self.db_object.set_shield_on(worker_id)
+
+    def set_shield_off(self, worker_id):
+        return self.db_object.set_shield_off(worker_id)
+
     def pprint(self, result):
         pprint(result)
 
@@ -132,16 +171,21 @@ class DBObject: # Interface
 class AzureCosmos:
 
     def __init__(self):
-        endpoint = "https://synapsel1nk.documents.azure.com:443/"
-        key = "r0EEApAfBwKARscLmgjPzdAYVVxFbLy5pOf2AU0yLL6FrcHFjySI3NYnb5zpHSvVPFkvRKI4yUTTRIZTmt4mCg=="
+        endpoint = "https://synapselink1.documents.azure.com:443/"
+        key = "zM8dZNCWIi03JWziWAr2JGBlU2uEsmU1651YA4p5HCKp1DpGeQ0fH3gNDCHVEId5JIhHXhTI7Rkfnl4pZurqfg=="
         # create_cosmos_client
         client = CosmosClient(endpoint, key)
 
-        database_name = 'lvtn_database'
+        database_name = 'data'
+        # database_name = 'lvtn_database'
         client.create_database_if_not_exists(database_name)
         database = client.get_database_client(database_name)
-        container_name = 'parsed_data'
+        # container_name = 'parsed_data'
+        container_name = 'test'
         self.container = database.get_container_client(container_name)
+        self.update_container = database.get_container_client("update_data")
+        self.final_container = database.get_container_client("final_data")
+
 
     def insert(self, row_json):
         self.container.upsert_item(row_json)

@@ -32,6 +32,9 @@ from selenium.webdriver import ActionChains
 from crawl import CrawlHTML
 
 def soup_from_html(html):
+    if html == None or len(html) < 10 :
+        return None
+
     soup = BeautifulSoup(html, 'html.parser')
     return soup
 
@@ -90,7 +93,7 @@ class NhaDat247Crawler(CrawlHTML):
         self.crawl_date = []
         self.buffer = None
         self.seed_url = url
-
+        print(post_type)
         date_from = datetime.strptime(date_from, '%d/%m/%Y').date()
         date_to = datetime.strptime(date_to, '%d/%m/%Y').date()
 
@@ -198,9 +201,13 @@ class NhaDat247Crawler(CrawlHTML):
         return _date
 
     def obtainData(self, file_name):
-        # local_urls = self.seed_url
-        local_urls = open("local_urls_log_nha.txt", "r").readlines()
-        visited_post = open("visited_post_log_nha.txt", "r").readlines()
+        try:
+            local_urls = open("local_urls_log_"+self.post_type+".txt", "r").readlines()
+            visited_post = open("visited_post_log_"+self.post_type+".txt", "r").readlines()
+        except:
+            local_urls = self.seed_url
+            visited_post = []
+
         while local_urls:
             url = local_urls.pop(0)
             is_post = re.search(self.regex_post, url)

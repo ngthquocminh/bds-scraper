@@ -13,7 +13,15 @@ import re
 
 LIMIT_POSTS_PER_REQUEST = 100
 CATE_ID = "1040" # {"nha":"1020","chung-cu":"1010","":""
-NUM_SPLIT = 20000
+NUM_SPLIT = 5000
+date_from = "20/6/2021"
+date_to   = "1/8/2021"
+
+
+date_from = datetime.strptime(date_from, '%d/%m/%Y').date()
+date_to = datetime.strptime(date_to, '%d/%m/%Y').date()
+
+post_date = {"from": date_from, "to": date_to}
 
 parser = argparse.ArgumentParser()
 parser.add_argument("process", help="The number of processes you want to run")
@@ -108,10 +116,11 @@ def get_date( date_str):
         else:
             _date = datetime.strptime(date_str, '%d/%m/%Y').date()
     except:
-        _date = date.today()
+        # _date = date.today()
         traceback.print_exc()
+        return None
         
-    return _date.strftime("%d/%m/%Y")
+    return _date#.strftime("%d/%m/%Y")
 
 def safe_get(json, key):
     try:
@@ -139,10 +148,19 @@ def address_join(num, street, ward, area, region):
 
     return ", ".join(address)
 
+from database import DBTarget
+db_target = DBTarget()
+
 def save_buffer(_process_index, _buf_index, buffer):
-    file_save = open("parsed_post_choto_nha_xx_pro{pro}_buf{buf}.json".format(pro=_process_index, buf=_buf_index), "w")
-    file_save.write(json.dumps(buffer, indent=5))
-    file_save.close()
+    print("Saving","-"*500)
+    for post in buffer:
+        try:
+            db_target.insert(json.dumps(post, indent=5))
+        except:
+            "Save record error"
+    # file_save = open("parsed_post_choto_nha_xx_pro{pro}_buf{buf}.json".format(pro=_process_index, buf=_buf_index), "w")
+    # file_save.write(json.dumps(buffer, indent=5))
+    # file_save.close()
 
 def crawler(cate, process_index):
 
@@ -182,9 +200,14 @@ def crawler(cate, process_index):
             except:
                 traceback.print_exc()
 
-            _date       = str(get_date(safe_get(post,"date")))
+            _date       = get_date(safe_get(post,"date"))
+            if (_date == None) or (not (post_date["from"] <= _date <= post_date["to"])):
+                continue
+
+            _date       = str(_date.strftime("%d/%m/%Y"))
+
             _category   = get_cate_type(cate, safe_get(post,"land_type")) # land_type, house_type, apartment_type 
-            _street_num = safe_get(post, "street_number")
+            _street_num = safe_get(post,"street_number")
             _street     = safe_get(post,"address")
             _street     = _street if isinstance(_street, str) and "Đường" in _street else None
             _ward       = safe_get(post,"ward_name")
@@ -235,7 +258,7 @@ def crawler(cate, process_index):
                 count = 0
                 split_save_index += 1
 
-            print(doc)
+            # print(doc)
             finish = False
 
         api_index += 1
