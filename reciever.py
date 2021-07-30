@@ -50,7 +50,7 @@ def main():
                 else:
                     command = "is runing"
                    
-            elif command == "cancel":
+            elif command == "stop":
                                 
                 db = DBObject()
                 db.cancel_task(Settings.worker_id)
@@ -59,7 +59,7 @@ def main():
                 os.kill(pid, signal.SIGTERM) 
 
 
-            elif command == "stop":
+            elif command == "pause":
                 
                 pid = int(open("data.lock","r").read())
                 os.kill(pid, signal.SIGTERM) 
@@ -73,10 +73,17 @@ def main():
                     command = "is runing"
 
             elif command == "shield":
-                if int(message["shield"]) == 1:
-                    Settings.enableShield()
+                if "shield" in message:
+                    if int(message["shield"]) == 1:
+                        Settings.enableShield()
+                    else:
+                        Settings.disableShield()
                 else:
-                    Settings.disableShield()
+                    if Settings.isShieldEnable():
+                        Settings.disableShield()
+                    else:
+                        Settings.enableShield()
+
             else:
                 # command = "nothing"
                 ""
