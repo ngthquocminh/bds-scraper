@@ -1,9 +1,20 @@
 from database import DBObject
+import json
 
 db = DBObject()
+
+data_settings = {}
+try:
+    settings_file = open("worker.settings","r")
+    data_settings = json.load(settings_file.read())
+except:
+    ""
+
+
 class Settings(object):
-    worker_id = "64875478"
-    worker_name = "worker01"
+
+    worker_id = data_settings["worker_id"] if "worker_id" in data_settings else ""
+    worker_name = data_settings["worker_name"] if "worker_name" in data_settings else ""
 
     def isShieldEnable():
         try:
