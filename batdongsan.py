@@ -190,7 +190,7 @@ class BatDongSanCrawler():
         self.__saved_post.append(url_hash)
         self.buffer.append(post)
 
-        post["html"] = "<html>"
+        # post["html"] = "<html>"
         print("-"*10,"\n",post)
 
 
