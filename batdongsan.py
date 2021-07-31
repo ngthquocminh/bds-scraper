@@ -42,7 +42,7 @@ class BatDongSanCrawler():
 
     def __init__(self, date_from=None, date_to=None, post_type=None, all_date:bool = False, resume=False, limit=-1):
         
-        self.limit = limit
+        self.limit = int(limit)
         self.db_object = DBObject()
         the_status = "crawling"
         worker_info = self.db_object.query_wokers_info(Settings.worker_id)
@@ -56,18 +56,18 @@ class BatDongSanCrawler():
                 if not ("(pause)" in status_ and "crawling" in status_):
                     print(">>", status_)
                     return
-                info_dict_ = {_i_.split(": ")[0]:_i_.split(": ")[1].lower() for _i_ in info_str_.split(", ")}
-                if info_dict_["Site"] != "batdongsan.com.vn":
+                info_dict_ = {_i_.split(": ")[0]:_i_.split(": ")[1] for _i_ in info_str_.lower().split(", ")}
+                if info_dict_["site"] != "batdongsan.com.vn":
                     return
-                date_from  = info_dict_["Date"].split("-")[0]
-                date_to    = info_dict_["Date"].split("-")[1]
+                date_from  = info_dict_["date"].split("-")[0]
+                date_to    = info_dict_["date"].split("-")[1]
                 
                 try:
-                    self.limit = int(info_dict_["Limit"])
+                    self.limit = int(info_dict_["limit"])
                 except:
                     self.limit = -1
 
-                post_type  = info_dict_["Type"]
+                post_type  = info_dict_["type"]
                 the_status = status_.replace("(pause)","")
                 print("Internal loading data to resume")
             except:
@@ -75,7 +75,7 @@ class BatDongSanCrawler():
                 return
 
 
-        self.__str_info = "Site: batdongsan.com.vn, Type: %s, Date: %s-%s, Limit:%s,"%(post_type, date_from, date_to, str(self.limit) if self.limit > 0 else "No") 
+        self.__str_info = "Site: batdongsan.com.vn, Type: %s, Date: %s-%s, Limit: %s, "%(post_type, date_from, date_to, str(self.limit) if isinstance(self.limit,int) and self.limit > 0 else "No") 
         self.__str_info += "Numpost: %d, Error: %d"
 
         self.post_type  = post_type
@@ -203,7 +203,7 @@ class BatDongSanCrawler():
         self.buffer.append(post)
 
         # post["html"] = "<html>"
-        print("-"*10,"\n",post)
+        # print("-"*10,"\n",post)
 
 
 
@@ -310,7 +310,8 @@ class BatDongSanCrawler():
 
         # finishing
         self.save_data()
-        self.db_object.update_wokers_info(Settings.worker_id, None)
+        self.update_crawling_status_info(post_count, len(self.__failed_urls))
+        self.update_crawling_log()
         self.browser.close()
         print('CRAWLING DONE')
 
