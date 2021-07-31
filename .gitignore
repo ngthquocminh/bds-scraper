@@ -6,3 +6,5 @@ parsed_*.json
 *log*.txt
 
 data
+
+worker.settings
