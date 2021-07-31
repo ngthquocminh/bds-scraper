@@ -1,5 +1,6 @@
 from database import DBObject
 import json
+import traceback
 
 db = DBObject()
 
@@ -8,6 +9,7 @@ try:
     settings_file = open("worker.settings","r")
     data_settings = json.load(settings_file.read())
 except:
+    traceback.print_exc()
     ""
 
 
