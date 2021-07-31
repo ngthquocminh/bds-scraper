@@ -43,10 +43,12 @@ class BatDongSanCrawler():
         self.db_object = DBObject()
         the_status = "crawling"
         worker_info = self.db_object.query_wokers_info(Settings.worker_id)
+
         if resume:
             try:
                 info_ = worker_info
                 status_ = info_["status"]
+                task_id = info_["task_id"]
                 info_str_ = info_["str_info"]
                 if not ("(pause)" in status_ and "crawling" in status_):
                     print(">>", status_)
@@ -95,9 +97,8 @@ class BatDongSanCrawler():
 
         self.browser = Browser(headless=False)        
 
-        task_id = worker_info["task_id"] if (worker_info and "task_id" in worker_info) else None
-        self.task_exist = self.db_object.query_wokers_logs(Settings.worker_id, task_id)
-        if not self.task_exist:
+        
+        if not resume:
             task_id = (int)(time.time())
 
         self.__crawling_info = {
@@ -113,12 +114,14 @@ class BatDongSanCrawler():
             "error_posts":[]
             }
 
-        if not self.task_exist:
+
+        if not resume:
             print("Create log")
             self.db_object.create_wokers_log(self.__crawling_log)
             self.update_crawling_status_info(0, 0)
         else:
-            log = self.db_object.query_wokers_logs(Settings.worker_id,task_id)
+            self.task_exist = self.db_object.query_wokers_logs(Settings.worker_id, task_id)
+            log = self.task_exist
             print("Get log: ", log if log else "null")
             if log is not None:
                 self.__saved_post = log["saved_posts"]
