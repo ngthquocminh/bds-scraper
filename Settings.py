@@ -7,7 +7,7 @@ db = DBObject()
 data_settings = {}
 try:
     settings_file = open("worker.settings","r")
-    data_settings = json.load(settings_file.read())
+    data_settings = json.loads(settings_file.read())
 except:
     traceback.print_exc()
     ""
