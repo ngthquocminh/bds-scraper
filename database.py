@@ -52,14 +52,14 @@ class MongoDB:
             if self.db_parsed.find_one({"url_hash",json_row["url_hash"]}) == None:
                 result = self.db_parsed.insert_one(json_row)
             else:
-                result = self.db_parsed.replace_one(update_one({"url_hash",json_row["url_hash"]},json_row)
+                result = self.db_parsed.replace_one({"url_hash",json_row["url_hash"]},json_row)
 
-        if isinstance(json_row,list) and many:
+        elif isinstance(json_row,list) and many:
             for row in json_row:
                 if self.db_parsed.find_one({"url_hash",row["url_hash"]}) == None:
                     result = self.db_parsed.insert_one(row)
                 else:
-                    result = self.db_parsed.replace_one(update_one({"url_hash",row["url_hash"]},row)
+                    result = self.db_parsed.replace_one({"url_hash",row["url_hash"]},row)
             
         return result
 
