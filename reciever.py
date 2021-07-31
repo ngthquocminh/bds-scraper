@@ -66,8 +66,11 @@ def main():
                                 
                 db = DBObject()
                 db.cancel_task(Settings.worker_id)
-                pid = int(open("data.lock","r").read())
-                os.kill(pid, signal.SIGTERM) 
+                try:
+                    pid = int(open("data.lock","r").read())
+                    os.kill(pid, signal.SIGTERM) 
+                except:
+                    ""
                 subprocess.call("TASKKILL /f  /IM  CHROMEDRIVER.EXE")
                 subprocess.call("TASKKILL /f  /IM  CHROME.EXE")
 
@@ -77,9 +80,12 @@ def main():
                 db = DBObject()
                 pid = int(open("data.lock","r").read())
                 _working, _as = db.workAs(Settings.worker_id)
-                if _working:                    
+                if _working:  
                     db.pause_task(Settings.worker_id)
-                    os.kill(pid, signal.SIGTERM) 
+                    try:                  
+                        os.kill(pid, signal.SIGTERM)
+                    except:
+                        ""
                     subprocess.call("TASKKILL /f  /IM  CHROME.EXE")
                     subprocess.call("TASKKILL /f  /IM  CHROMEDRIVER.EXE")
                 else:
