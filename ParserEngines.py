@@ -42,7 +42,7 @@ def parse(posts_data, site=None, type=None, num=None, many:bool=False, model_nam
                 print(">>", status_)
                 return
 
-            info_dict_ = {_i_.split(": ")[0]:_i_.split(": ")[1].lower() for _i_ in info_str_.split(", ")}
+            info_dict_ = {_i_.split(": ")[0]:_i_.split(": ")[1].lower() for _i_ in info_str_.lower().split(", ")}
 
             the_status = status_.replace("(pause)","")
             site = info_dict_["site"]
