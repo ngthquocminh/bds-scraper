@@ -59,10 +59,15 @@ class BatDongSanCrawler():
                 info_dict_ = {_i_.split(": ")[0]:_i_.split(": ")[1].lower() for _i_ in info_str_.split(", ")}
                 if info_dict_["Site"] != "batdongsan.com.vn":
                     return
-                date_from = info_dict_["Date"].split("-")[0]
-                date_to   = info_dict_["Date"].split("-")[1]
+                date_from  = info_dict_["Date"].split("-")[0]
+                date_to    = info_dict_["Date"].split("-")[1]
+                
+                try:
+                    self.limit = int(info_dict_["Limit"])
+                except:
+                    self.limit = -1
 
-                post_type = info_dict_["Type"]
+                post_type  = info_dict_["Type"]
                 the_status = status_.replace("(pause)","")
                 print("Internal loading data to resume")
             except:
@@ -70,7 +75,8 @@ class BatDongSanCrawler():
                 return
 
 
-        self.__str_info = "Site: batdongsan.com.vn, Type: %s, Date: %s-%s, "%(post_type, date_from, date_to) + "Numpost: %d, Error: %d"
+        self.__str_info = "Site: batdongsan.com.vn, Type: %s, Date: %s-%s, Limit:%s,"%(post_type, date_from, date_to, str(self.limit) if self.limit > 0 else "No") 
+        self.__str_info += "Numpost: %d, Error: %d"
 
         self.post_type  = post_type
         self.buffer     = []
@@ -242,9 +248,8 @@ class BatDongSanCrawler():
             if is_post:
                 print("Is a post")
                 post_date = self.get_date(page_soup)
-                print(post_date, " ", self.post_date_range["from"] <= post_date <= self.post_date_range["to"])
                 if not self.post_date_range or \
-                    (isinstance(post_date, datetime) and (self.post_date_range["from"] <= post_date <= self.post_date_range["to"])):
+                    (isinstance(post_date, date) and (self.post_date_range["from"] <= post_date <= self.post_date_range["to"])):
                     post_date = post_date.strftime('%d/%m/%Y')
                 else:
                     page_source = None
@@ -300,12 +305,13 @@ class BatDongSanCrawler():
 
             num_visited += 1
             print("  >> num: ", post_count)  
-            if self.limit > 0 and post_count == self.limit:
+            if self.limit > 0 and post_count >= self.limit:
                 break      
 
         # finishing
         self.save_data()
         self.db_object.update_wokers_info(Settings.worker_id, None)
+        self.browser.close()
         print('CRAWLING DONE')
 
 
