@@ -16,9 +16,11 @@ from selenium.webdriver.common.by import By
 from database import DBObject
 from Browser import Browser
 from Settings import Settings
+
 # "apartment": ["https://nhadat247.com.vn/ban-can-ho-chung-cu.html"],
 # "house": ["https://nhadat247.com.vn/ban-nha-rieng.html", "https://nhadat247.com.vn/ban-nha-biet-thu-lien-ke.html", "https://nhadat247.com.vn/ban-nha-mat-pho.html"],
 # "land": ["https://nhadat247.com.vn/ban-dat-nen-du-an.html", "https://nhadat247.com.vn/ban-dat.html"]
+
 def get_seed_url(post_type):
     data = {
         "apartment" : ["https://batdongsan.com.vn/ban-can-ho-chung-cu"],
@@ -43,8 +45,8 @@ class BatDongSanCrawler():
         self.db_object = DBObject()
         the_status = "crawling"
         worker_info = self.db_object.query_wokers_info(Settings.worker_id)
-
-        if resume:
+        self.resume = resume
+        if self.resume:
             try:
                 info_ = worker_info
                 status_ = info_["status"]
@@ -79,6 +81,7 @@ class BatDongSanCrawler():
     
         self.file_log_visited_url   = "visited_post_log_batdongsan_%s.txt"%(self.post_type)
         self.file_log_new_url       = "local_urls_log_batdongsan_%s.txt"%(self.post_type)
+
         self.regex_sub_url          = re.compile("https[:][/][/]batdongsan[\.]com[\.]vn/ban-[-a-z0-9]+(/p[0-9]+)?")
         self.regex_post             = re.compile("https[:][/][/]batdongsan[\.]com[\.]vn/ban-[-a-z0-9]+/[-a-z0-9]+pr[0-9]+")
 
@@ -98,7 +101,7 @@ class BatDongSanCrawler():
         self.browser = Browser(headless=False)        
 
         
-        if not resume:
+        if not self.resume:
             task_id = (int)(time.time())
 
         self.__crawling_info = {
@@ -115,13 +118,12 @@ class BatDongSanCrawler():
             }
 
 
-        if not resume:
+        if not self.resume:
             print("Create log")
             self.db_object.create_wokers_log(self.__crawling_log)
             self.update_crawling_status_info(0, 0)
         else:
-            self.task_exist = self.db_object.query_wokers_logs(Settings.worker_id, task_id)
-            log = self.task_exist
+            log = self.db_object.query_wokers_logs(Settings.worker_id, task_id)
             print("Get log: ", log if log else "null")
             if log is not None:
                 self.__saved_post = log["saved_posts"]
@@ -202,7 +204,7 @@ class BatDongSanCrawler():
         local_urls   = self.seed_url
         visited_post = []
 
-        if self.task_exist:
+        if self.resume:
             try:
                 local_urls = list(open(self.file_log_new_url, "r").readlines())
             except:
