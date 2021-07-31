@@ -13,7 +13,7 @@ def start_crawling(date_from=None, date_to=None, post_type=None, resume=False, a
     crawler = BatDongSanCrawler(post_type=post_type, date_from=date_from, date_to=date_to, resume=resume)
     crawler.obtain_data()
 
-def start_parsing(list_post, model_name, site, type, resume=False):
+def start_parsing(list_post, model_name=None, site=None, type=None, resume=False):
     ""
     print("Go to start_parsing")
 
