@@ -12,9 +12,9 @@ from Settings import Settings
 
 db = DBObject()
 
-def start_crawling(date_from=None, date_to=None, post_type=None, resume=False, all_date:bool = False):
+def start_crawling(date_from=None, date_to=None, post_type=None, resume=False, all_date:bool = False,limit=-1):
     ""
-    crawler = BatDongSanCrawler(post_type=post_type, date_from=date_from, date_to=date_to, resume=resume)
+    crawler = BatDongSanCrawler(post_type=post_type, date_from=date_from, date_to=date_to, resume=resume, limit=limit)
     crawler.obtain_data()
     db.finishing_task(Settings.worker_id)
 
@@ -34,7 +34,8 @@ def main(params):
                 date_from = params["post-date"].split("_")[0].replace("-","/")
                 date_to   = params["post-date"].split("_")[1].replace("-","/")
                 post_type = params["type"]
-                start_crawling(date_from=date_from, date_to=date_to, post_type=post_type)
+                limit     = params["limit"] if "limit" in params else -1
+                start_crawling(date_from=date_from, date_to=date_to, post_type=post_type,limit=limit)
 
         elif params["command"] == "parse":
             print("Go to parse")

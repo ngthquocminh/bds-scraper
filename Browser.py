@@ -70,3 +70,6 @@ class Browser(object):
                     break
 
         return html
+
+    def close(self):
+        self.browser.close()
