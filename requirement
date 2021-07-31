@@ -12,3 +12,5 @@ pika
 pymongo
 azure-cosmos
 certifi
+psutil
+dnspython
