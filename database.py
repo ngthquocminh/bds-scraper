@@ -72,12 +72,22 @@ class MongoDB:
 
     def insert_html_data(self, json_row=None, many=False):
         result = None
-        if json_row is None or len(json_row)==0:
+        if json_row is None:
             return 
+
         if isinstance(json_row,dict) and not many:
-            result = self.db_html.insert_one(json_row)
-        if isinstance(json_row,list) and many:
-            result = self.db_html.insert_many(json_row)
+            if self.db_html.find_one({"url_hash":json_row["url_hash"]}) == None:
+                result = self.db_html.insert_one(json_row)
+            else:
+                result = self.db_html.replace_one({"url_hash":json_row["url_hash"]},json_row)
+
+        elif isinstance(json_row,list) and many:
+            for row in json_row:
+                if self.db_html.find_one({"url_hash":row["url_hash"]}) == None:
+                    result = self.db_html.insert_one(row)
+                else:
+                    result = self.db_html.replace_one({"url_hash":row["url_hash"]},row)
+            
         return result
 
     def query_html_db(self, query_dict: dict, limit=1,sort=None):    
@@ -117,7 +127,7 @@ class MongoDB:
         return res
 
     def get_all_free_workers(self):
-        res = self.db_worker.find({"info": None})
+        res = self.db_worker.find({"$or":[{"info": None},{"info.status":{"$regex":r"^.*(finish).*$"}}]})
         return [w for w in res]
 
     def get_all_workers(self):
@@ -154,6 +164,15 @@ class MongoDB:
             w = self.db_worker.find_one({"worker_id": worker_id})
             status = w["info"]["status"]
             res = self.db_worker.update_one({"worker_id": worker_id},{"$set":{"info.status":"(pause)%s"%(status)}})
+            return res
+        except:
+            return None
+
+    def finishing_task(self, worker_id):
+        try:
+            w = self.db_worker.find_one({"worker_id": worker_id})
+            status = w["info"]["status"].replace("(pause)","")
+            res = self.db_worker.update_one({"worker_id": worker_id},{"$set":{"info.status":"(finish)%s"%(status)}})
             return res
         except:
             return None
@@ -199,6 +218,9 @@ class DBObject: # Interface
 
     def cancel_task(self, worker_id):
         return self.db_object.cancel_task(worker_id)  
+    
+    def finishing_task(self, worker_id):
+        return self.db_object.finishing_task(worker_id)
 
     def pause_task(self, worker_id):
         return self.db_object.pause_task(worker_id)  
