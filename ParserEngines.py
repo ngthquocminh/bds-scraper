@@ -47,7 +47,7 @@ def parse(posts_data, site=None, type=None, num=None, many:bool=False, model_nam
             the_status = status_.replace("(pause)","")
             site = info_dict_["site"]
             type = info_dict_["type"]
-            num  = info_dict_["num"]
+            num  = int(info_dict_["num"])
             model_name = log["parser_model"]
 
             print("Internal loading data to resume")
