@@ -38,10 +38,11 @@ def save_list(data: list, file_name):
 class BatDongSanCrawler():
 
     BASE_URL = "https://batdongsan.com.vn/"
-    SAVE_CHECK_POINT = 20
+    SAVE_CHECK_POINT = 5
 
-    def __init__(self, date_from=None, date_to=None, post_type=None, all_date:bool = False, resume=False):
+    def __init__(self, date_from=None, date_to=None, post_type=None, all_date:bool = False, resume=False, limit=-1):
         
+        self.limit = limit
         self.db_object = DBObject()
         the_status = "crawling"
         worker_info = self.db_object.query_wokers_info(Settings.worker_id)
@@ -241,6 +242,7 @@ class BatDongSanCrawler():
             if is_post:
                 print("Is a post")
                 post_date = self.get_date(page_soup)
+                print(post_date, " ", self.post_date_range["from"] <= post_date <= self.post_date_range["to"])
                 if not self.post_date_range or \
                     (isinstance(post_date, datetime) and (self.post_date_range["from"] <= post_date <= self.post_date_range["to"])):
                     post_date = post_date.strftime('%d/%m/%Y')
@@ -297,7 +299,9 @@ class BatDongSanCrawler():
                 save_list(visited_post, self.file_log_visited_url)
 
             num_visited += 1
-            print("  >> num: ", post_count)           
+            print("  >> num: ", post_count)  
+            if self.limit > 0 and post_count == self.limit:
+                break      
 
         # finishing
         self.save_data()
