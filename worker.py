@@ -4,7 +4,7 @@ import os
 from batdongsan import BatDongSanCrawler
 import traceback
 from ParserEngines import doParse
-from reciever import message_loads
+from receiver import message_loads
 from database import DBObject
 from Settings import Settings
 
