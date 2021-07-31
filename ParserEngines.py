@@ -102,10 +102,7 @@ def parse(posts_data, site=None, type=None, num=None, many:bool=False, model_nam
 
                 database.insert_parsed_data(posts_data, many=False)
 
-                #update log adn info
-                __parsing_info["str_info"] = __str_info%(len(__saved_post),len(__failed_urls))
-                database.update_wokers_info(Settings.worker_id, __parsing_info)
-                database.update_wokers_log(Settings.worker_id, __parsing_log["task_id"], __saved_post, __failed_urls)
+                
                 database.update_html_post_status(post["url_hash"],int(post["status"]) + 1)
 
                 result.append(posts_data["url_hash"])
@@ -113,7 +110,12 @@ def parse(posts_data, site=None, type=None, num=None, many:bool=False, model_nam
             else:
                 print("parse Failed")
                 __failed_urls.append(post["url_hash"])
-
+            
+            #update log adn info
+            __parsing_info["str_info"] = __str_info%(len(__saved_post),len(__failed_urls))
+            database.update_wokers_info(Settings.worker_id, __parsing_info)
+            database.update_wokers_log(Settings.worker_id, __parsing_log["task_id"], __saved_post, __failed_urls)
+        
         return result
 
     elif isinstance(posts_data,dict):
