@@ -25,12 +25,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchWindowException, WebDriverException
-from selenium.common.exceptions import TimeoutException
-from selenium.common.exceptions import StaleElementReferenceException
-from selenium.common.exceptions import ElementClickInterceptedException
-import selenium.common.exceptions
-from selenium.webdriver import ActionChains
 
 from crawl import CrawlHTML
 
