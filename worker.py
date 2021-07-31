@@ -5,6 +5,9 @@ from batdongsan import BatDongSanCrawler
 import traceback
 from ParserEngines import doParse
 from reciever import message_loads
+from database import DBObject
+from Settings import Settings
+
 # from batdongsan import BatDongSanCrawler
 
 
@@ -12,12 +15,16 @@ def start_crawling(date_from=None, date_to=None, post_type=None, resume=False, a
     ""
     crawler = BatDongSanCrawler(post_type=post_type, date_from=date_from, date_to=date_to, resume=resume)
     crawler.obtain_data()
+    db = DBObject()
+    db.cancel_task(Settings.worker_id)
 
 def start_parsing(list_post, model_name=None, site=None, type=None, resume=False):
     ""
     print("Go to start_parsing")
 
     doParse(list_post, model_name, site=site, type=type, num=len(list_post), resume=resume)
+    db = DBObject()
+    db.cancel_task(Settings.worker_id)
 
 def main(params):
     try:
