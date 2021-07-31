@@ -2,18 +2,17 @@ import re
 import hashlib
 import traceback
 import time
+import calendar
 
 import validators
 from datetime import datetime, date
 from bs4 import BeautifulSoup
-from datetime import datetime
 from urllib.parse import urlparse
 from urllib.parse import urljoin
 
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
-from crawl import CrawlHTML
 from database import DBObject
 from Browser import Browser
 from Settings import Settings
@@ -39,7 +38,33 @@ class BatDongSanCrawler():
     BASE_URL = "https://batdongsan.com.vn/"
     SAVE_CHECK_POINT = 20
 
-    def __init__(self, date_from=None, date_to=None, post_type=None, all_date:bool = False):
+    def __init__(self, date_from=None, date_to=None, post_type=None, all_date:bool = False, resume=False):
+        
+        self.db_object = DBObject()
+        the_status = "crawling"
+        worker_info = self.db_object.query_wokers_info(Settings.worker_id)
+        if resume:
+            try:
+                info_ = worker_info
+                status_ = info_["status"]
+                info_str_ = info_["str_info"]
+                if not ("(pause)" in status_ and "crawling" in status_):
+                    print(">>", status_)
+                    return
+                info_dict_ = {_i_.split(": ")[0]:_i_.split(": ")[1].lower() for _i_ in info_str_.split(", ")}
+                if info_dict_["Site"] != "batdongsan.com.vn":
+                    return
+                date_from = info_dict_["Date"].split("-")[0]
+                date_to   = info_dict_["Date"].split("-")[1]
+
+                post_type = info_dict_["Type"]
+                the_status = status_.replace("(pause)","")
+                print("Internal loading data to resume")
+            except:
+                traceback.print_exc()
+                return
+
+
         self.__str_info = "Site: batdongsan.com.vn, Type: %s, Date: %s-%s, "%(post_type, date_from, date_to) + "Numpost: %d, Error: %d"
 
         self.post_type  = post_type
@@ -58,17 +83,18 @@ class BatDongSanCrawler():
         self.key_type = BatDongSanCrawler.get_key_from_type(self.post_type)
         
         try:
+            last_day_to = calendar.monthrange(int(date_to.split("/")[1]), int(date_to.split("/")[0]))[1]
             self.post_date_range = {
-                "from": datetime.strptime(date_from, '%d/%m/%Y').date(), 
-                "to": datetime.strptime(date_to, '%d/%m/%Y').date()
+                "from": datetime.strptime("1/" + date_from, '%d/%m/%Y').date(), 
+                "to": datetime.strptime(str(last_day_to) + "/" + date_to, '%d/%m/%Y').date()
                 }
+            print("-"*200,"\n", self.post_date_range)
         except:
+            traceback.print_exc()
             self.post_date_range = None            
 
-        self.db_object = DBObject()
-        self.browser = Browser(headless=False)
-        
-        worker_info = self.db_object.query_wokers_info(Settings.worker_id)
+        self.browser = Browser(headless=False)        
+
         task_id = worker_info["task_id"] if (worker_info and "task_id" in worker_info) else None
         self.task_exist = self.db_object.query_wokers_logs(Settings.worker_id, task_id)
         if not self.task_exist:
@@ -76,7 +102,7 @@ class BatDongSanCrawler():
 
         self.__crawling_info = {
             "task_id":task_id,
-            "status":"crawling",
+            "status":the_status,
             "str_info":""
             }
         self.__crawling_log  = {
@@ -211,7 +237,7 @@ class BatDongSanCrawler():
                 print("Is a post")
                 post_date = self.get_date(page_soup)
                 if not self.post_date_range or \
-                    (isinstance(post_date, datetime.datetime) and (self.post_date_range["from"] <= post_date <= self.post_date_range["to"])):
+                    (isinstance(post_date, datetime) and (self.post_date_range["from"] <= post_date <= self.post_date_range["to"])):
                     post_date = post_date.strftime('%d/%m/%Y')
                 else:
                     page_source = None

@@ -9,6 +9,7 @@ import traceback
 import psutil
 from Settings import Settings
 from database import DBObject
+import subprocess
 
 def message_loads(message:str):
     try:
@@ -24,7 +25,9 @@ def message_dumps(data:dict):
         traceback.print_exc()
 
 def main():
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+    
+    parameters = pika.ConnectionParameters(host='localhost')
+    connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
 
     channel.queue_declare(queue='hello')
@@ -35,18 +38,27 @@ def main():
             body = body.decode('ascii')
             message = message_loads(body)
             command = message["command"]
-            if command == "crawl" or command == "parse":
+
+            if command == "crawl":
+
                 pid = int(open("data.lock","r").read())
                 if not psutil.pid_exists(pid):
                     Popen(['python', 'worker.py', body])
                 else:
                     command = "is runing"
             
-            if command == "parse":
+            elif command == "parse":
+                
                 pid = int(open("data.lock","r").read())
                 if not psutil.pid_exists(pid):
-                    open("parse_posts.data","w").write(message["posts"])
-                    Popen(['python', 'worker.py', "command:parse"])
+                    file = open("parse_posts.data","w")
+                    file.write(message["posts"])
+                    file.close()
+                    model = message["model"] if "model" in message else "auto"
+                    type = message["type"] if "type" in message else "all"
+                    site = message["site"] if "site" in message else "all"
+
+                    Popen(['python', 'worker.py', "command:parse site:%s type:%s model:%s"%(site,type,model)])
                 else:
                     command = "is runing"
                    
@@ -54,38 +66,34 @@ def main():
                                 
                 db = DBObject()
                 db.cancel_task(Settings.worker_id)
-                
                 pid = int(open("data.lock","r").read())
                 os.kill(pid, signal.SIGTERM) 
+                subprocess.call("TASKKILL /f  /IM  CHROMEDRIVER.EXE")
+                subprocess.call("TASKKILL /f  /IM  CHROME.EXE")
 
 
             elif command == "pause":
-                
-                pid = int(open("data.lock","r").read())
-                os.kill(pid, signal.SIGTERM) 
 
-            elif command == "resume":
-
+                db = DBObject()
                 pid = int(open("data.lock","r").read())
-                if not psutil.pid_exists(pid):
-                    Popen(['python', 'worker.py', "command:resume"])
+                _working, _as = db.workAs(Settings.worker_id)
+                if _working:                    
+                    db.pause_task(Settings.worker_id)
+                    os.kill(pid, signal.SIGTERM) 
+                    subprocess.call("TASKKILL /f  /IM  CHROME.EXE")
+                    subprocess.call("TASKKILL /f  /IM  CHROMEDRIVER.EXE")
                 else:
-                    command = "is runing"
+                    if not psutil.pid_exists(pid):
+                        Popen(['python', 'worker.py', "command:%s resume:1"%(_as)])
+                    else:
+                        command = "is runing"
+
 
             elif command == "shield":
-                if "shield" in message:
-                    if int(message["shield"]) == 1:
-                        Settings.enableShield()
-                    else:
-                        Settings.disableShield()
-                else:
-                    if Settings.isShieldEnable():
-                        Settings.disableShield()
-                    else:
-                        Settings.enableShield()
-
+                shield_on = True if (("shield" in message and int(message["shield"]) == 1) or (not Settings.isShieldEnable())) else False
+                Settings.enableShield(shield_on)
             else:
-                # command = "nothing"
+                command = "nothing"
                 ""
         except:
             traceback.print_exc()

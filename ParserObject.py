@@ -36,7 +36,7 @@ class ParserObject(object):
 
             xpath = str(row["xpath"])
 
-            # print(" > ", index, ". ", feature, xpath)
+            print(" > ", index, ". ", feature, xpath)
 
             attr = row["default"]
             if xpath != '' or len(xpath) > 0:

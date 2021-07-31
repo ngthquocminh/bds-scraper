@@ -29,7 +29,8 @@ def clean_trash(html):
     html = re.sub("( +)"," ", html)
     return re.sub("(<!--.*?-->)|(<script.*?>.*?</script>)|(<style.*?>.*?</style>)", "", html, flags=re.DOTALL)
 
-def load_parser_set(key:str):      
+def load_parser_set(key:str):     
+    print("load_parser_set " + key) 
     return db.get_parser_model(key)
 
 def d_range(from_to): 

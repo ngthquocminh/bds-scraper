@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 from pprint import pprint
 from azure.cosmos import exceptions, CosmosClient, PartitionKey
+import traceback
 
 class MongoDB:
     ASC = 1
@@ -14,7 +15,7 @@ class MongoDB:
 
         self.main_database   = "lvtn_database"
         self.parsed_db_name  = "parsed_db"
-        self.html_db_name    = "html_db_test"
+        self.html_db_name    = "html_db"
         self.worker_db_name  = "worker_info"
         self.logs_db_name    = "worker_logs"
         self.db_parser_name  = "parser_model"
@@ -56,6 +57,10 @@ class MongoDB:
     def get_collection(self,collection_name:str):
         return self.client[collection_name]
     
+    def update_html_post_status(self,url_hash, status):
+        res = self.db_html.update_one({"url_hash":url_hash},{"$set":{"status":str(status)}})
+        return res
+
     def insert_html_data(self, json_row=None, many=False):
         result = None
         if json_row is None or len(json_row)==0:
@@ -102,17 +107,68 @@ class MongoDB:
         res = self.db_worker.update_one({"worker_id": worker_id}, {"$set":{"info":worker_info}})
         return res
 
-    def set_shield_on(self, worker_id):
-        res =self.db_worker.update_one({"$and":[{"worker_id": worker_id},{"info.status":{"$regex":r"^.*crawling.*$"}}]},{"$set":{"info.status":"(anti)crawling"}})
+    def get_all_free_workers(self):
+        res = self.db_worker.find({"info": None})
+        return [w for w in res]
+
+    def get_all_workers(self):
+        res = self.db_worker.find()
+        return [w for w in res]
+    
+    def get_worker(self, worker_id):
+        res = self.db_worker.find_one({"worker_id": worker_id})
         return res
 
+    def set_shield_on(self, worker_id):
+        try:
+            w = self.db_worker.find_one({"worker_id": worker_id})
+            status = w["info"]["status"]
+            if status == "crawling":
+                res =self.db_worker.update_one({"$and":[{"worker_id": worker_id},{"info.status":{"$regex":r"^.*crawling.*$"}}]},{"$set":{"info.status":"(anti)crawling"}})
+                return True
+            return False
+        except:
+            ""
+        return False
+
     def set_shield_off(self, worker_id):
+        
         res = self.db_worker.update_one({"$and":[{"worker_id": worker_id},{"info.status":{"$regex":r"^.*crawling.*$"}}]},{"$set":{"info.status":"crawling"}})
         return res
 
     def cancel_task(self, worker_id):
         res = self.db_worker.update_one({"worker_id": worker_id},{"$set":{"info":None}})
         return res
+
+    def pause_task(self, worker_id):
+        try:
+            w = self.db_worker.find_one({"worker_id": worker_id})
+            status = w["info"]["status"]
+            res = self.db_worker.update_one({"worker_id": worker_id},{"$set":{"info.status":"(pause)%s"%(status)}})
+            return res
+        except:
+            return None
+
+    def isWorking(self, worker_id):
+        try:
+            w = self.db_worker.find_one({"worker_id": worker_id})
+            if isinstance(w["info"]["status"], str) and ("pause" not in w["info"]["status"]):
+                return True
+        except:
+            ""
+        return False
+
+    def workAs(self, worker_id):
+        try:
+            w = self.db_worker.find_one({"worker_id": worker_id})
+            print(w)
+            if isinstance(w["info"]["status"], str):
+                return (("pause" not in w["info"]["status"]), ("crawl" if "crawling" in w["info"]["status"] else "parse"))
+            
+        except:
+            traceback.print_exc()
+            ""
+        return (None, "null")
 
     def pprint(self, result):
         pprint(result)
@@ -123,18 +179,30 @@ class DBObject: # Interface
     def __init__(self):
         self.db_object = MongoDB()
 
+    def isWorking(self, worker_id):
+        return self.db_object.isWorking(worker_id)
+
+    def workAs(self, worker_id):
+        return self.db_object.workAs(worker_id)
+
     def get_parser_model(self,parser_name):
-        return self.db_object.get_parser_model(self,parser_name)
+        return self.db_object.get_parser_model(parser_name)
 
     def cancel_task(self, worker_id):
         return self.db_object.cancel_task(worker_id)  
+
+    def pause_task(self, worker_id):
+        return self.db_object.pause_task(worker_id)  
 
     def get_collection(self,collection_name:str):
         return self.db_object.get_collection(collection_name)  
 
     def insert_parsed_data(self, json_row=None, many=False):
         return self.db_object.insert_parsed_data(json_row, many)
-    
+
+    def update_html_post_status(self,url_hash, status):
+        return self.db_object.update_html_post_status(url_hash,status)
+        
     def insert_html_data(self, json_row=None, many=False):
         return self.db_object.insert_html_data(json_row, many)
 
@@ -164,6 +232,15 @@ class DBObject: # Interface
 
     def set_shield_off(self, worker_id):
         return self.db_object.set_shield_off(worker_id)
+
+    def get_all_free_workers(self):
+        return self.db_object.get_all_free_workers()
+    
+    def get_all_workers(self):
+        return self.db_object.get_all_workers()
+
+    def get_worker(self, worker_id):
+        return self.db_object.get_worker(worker_id)
 
     def pprint(self, result):
         pprint(result)

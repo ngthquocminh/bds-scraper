@@ -26,12 +26,15 @@ class Settings(object):
         except:
             return False
 
-    def enableShield():
+    def enableShield(on=None):
         try:
-            db.set_shield_on(Settings.worker_id)
-            with open("shield.data","w") as shield:
-                shield.write("TRUE")
-                shield.close()
+            if on is None or on is True:
+                if db.set_shield_on(Settings.worker_id):
+                    with open("shield.data","w") as shield:
+                        shield.write("TRUE")
+                        shield.close()
+            else:
+                Settings.disableShield()
 
             return True
             
