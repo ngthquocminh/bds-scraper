@@ -1,6 +1,6 @@
 __pycache__/
 .idea/
-
+.ipynb_checkpoints/
 post_*.json
 parsed_*.json
 *log*.txt
