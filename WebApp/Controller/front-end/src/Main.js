@@ -26,8 +26,8 @@ function Main() {
             <Route path='/worker-setup' component={WorkerSetup}/>
             <Route path='/parser-config' component={ParserConfig}/>
             <Route path='/parser-testing' component={ParserTesting}/>
-            <Route path='/parse-control' component={CrawlController}/>
-            <Route path='/crawl-control' component={ParseController}/>
+            <Route path='/crawl-control' component={CrawlController}/>
+            <Route path='/parse-control' component={ParseController}/>
             </Switch>
         </div>
     </BrowserRouter>

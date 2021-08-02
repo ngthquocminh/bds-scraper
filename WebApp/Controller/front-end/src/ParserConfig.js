@@ -47,19 +47,40 @@ export class ParserConfig extends Component{
         let editModalClose=()=>this.setState({editModalShow:false});
         return(
             <div className="ml-5 mr-5">
-                <Button 
-                variant="info"
-                onClick={(event)=>this.setState({set_name:"bat-dong-san-com-vn"})}
-                className="m-2"
-                >
-                    batdongsan.com.vn
-                </Button>
-                <Button 
-                variant="info"
-                onClick={(event)=>this.setState({set_name:"cho-tot-com"})}
-                >
-                    chotot.com
-                </Button>
+                <div className="row">
+                    <div className="col">            
+                        <Button 
+                        variant="info"
+                        onClick={(event)=>this.setState({set_name:"bat-dong-san-com-vn"})}
+                        className="m-2"
+                        >
+                            batdongsan.com.vn
+                        </Button>
+                        <Button 
+                        variant="info"
+                        onClick={(event)=>this.setState({set_name:"nha-cho-tot-com"})}
+                        className="m-2"
+                        >
+                            nha.chotot.com
+                        </Button>
+                        <Button 
+                        variant="info"
+                        onClick={(event)=>this.setState({set_name:"nha-dat-247-com-vn"})}
+                        className="m-2"
+                        >
+                            nhadat247.com.vn
+                        </Button>
+                    </div>
+                    <div className="col text-right">   
+                        <Button 
+                            variant='primary'
+                            onClick={()=>this.setState({addModalShow:true})}
+                        >
+                            Add new attribute
+                        </Button>
+
+                    </div>
+                </div>
                 <hr/>
                 <Table className="mt-4" striped bordered hover size="sm">
                     <thead>
@@ -119,22 +140,12 @@ export class ParserConfig extends Component{
                     editData={editModalData}
                 />
 
-                <ButtonToolbar>
-                    <Button 
-                        variant='primary'
-                        onClick={()=>this.setState({addModalShow:true})}
-                    >
-                        Add new attribute
-                    </Button>
-
-                    <AddNewParser 
-                        show={this.state.addModalShow}
-                        onHide={addModalClose}
-                        setName={this.state.set_name}
-                    />
-                </ButtonToolbar>
-
-                <hr/>
+                <AddNewParser 
+                    show={this.state.addModalShow}
+                    onHide={addModalClose}
+                    setName={this.state.set_name}
+                />
+                 <hr/>
             </div>
         );
     }

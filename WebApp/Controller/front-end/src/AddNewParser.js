@@ -47,7 +47,7 @@ export class AddNewParser extends Component{
                 >
                     <Modal.Header>
                         <Modal.Title id="contained-modal-title-vcenter">
-                            Add New Worker
+                            Add new attribute
                         </Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
