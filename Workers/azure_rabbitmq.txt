@@ -1,0 +1,21 @@
+1. Enable RabbitMQ management
+
+sudo rabbitmq-plugins enable rabbitmq_management
+
+rabbitmqctl.bat status
+
+1. Create user
+
+rabbitmqctl add_user username password
+rabbitmqctl set_user_tags username administrator
+rabbitmqctl set_permissions -p / username ".*" ".*" ".*"
+
+rabbitmqctl.bat add_user worker03 worker03
+rabbitmqctl.bat set_user_tags worker03 administrator
+rabbitmqctl.bat set_permissions -p / worker03 ".*" ".*" ".*"
+
+
+ssh-keygen -t rsa -b 4096
+
+
+https://thucnc.medium.com/how-to-install-rabbitmq-on-ubuntu-18-04-d002a347764e

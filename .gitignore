@@ -1,5 +1,7 @@
 __pycache__/
 .idea/
+.vscode/
+
 .ipynb_checkpoints/
 post_*.json
 parsed_*.json

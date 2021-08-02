@@ -1,0 +1,1 @@
+https://github.com/Azure-Samples/azure-cosmos-db-python-getting-started.git

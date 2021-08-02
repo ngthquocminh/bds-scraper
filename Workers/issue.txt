@@ -1,0 +1,7 @@
+1. Permission issue with chrome driver:
+Go to the folder contains chromedriver
+    chmod a+x chromedriver
+
+
+2. mogodb:
+SSL_CERT_FILE =<certifi.where()>
