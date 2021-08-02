@@ -8,3 +8,5 @@ parsed_*.json
 data
 
 worker.settings
+
+logs/
