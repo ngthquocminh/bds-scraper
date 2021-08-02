@@ -22,7 +22,7 @@ class ParserModelSelector(ParserObject):
                 "url-check-rgx": re.compile("^http(s?)://(www.)?batdongsan.com.vn/.+"),
                 "html-check-rgx": None,
             },
-            "cho-tot-com": {
+            "nha-cho-tot-com": {
                 "url-check-rgx": re.compile("http(s?)://(www.)?nha.chotot.com/"),
                 "html-check-rgx": None
             },
@@ -31,7 +31,6 @@ class ParserModelSelector(ParserObject):
                 "html-check-rgx": None
             }            
         }
-
 
     def get_model(self):
         if self.__model is None:

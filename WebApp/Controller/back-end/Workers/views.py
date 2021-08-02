@@ -13,13 +13,16 @@ from django.http.response import JsonResponse
 from Workers.utility.test_worker import test_connection
 from Workers.models import Worker
 from Workers.serializers import ParserSerializer, WorkerSerializer
-from Workers.utility.test_parser import doTestOnParser, searchPostHtml
+from Workers.utility.test_parser import doTestOnParser
+from Workers.utility.LibFunc import searchPostHtml
 from Workers.utility.LibFunc import load_parser_set
+from Workers.utility.workers_handeling import doCrawl, doParse, getAllWorkers, stopWorker, pauseWorker, stopAllWorkers, toggleShield
 
 # Create your views here.
 
 @csrf_exempt
 def workerApi(request: request.HttpRequest, id=0):
+    
     if request.method == 'GET':
         
         workers = Worker.objects.all()
@@ -35,8 +38,9 @@ def workerApi(request: request.HttpRequest, id=0):
             return JsonResponse("Added Successfully",safe=False)
         return JsonResponse("Added Failed!!", safe=False)
 
-    elif request.method == 'PUT':
-        
+    elif request.method == 'PUT':        
+
+
         worker_data = JSONParser().parse(request)
         worker = Worker.objects.get(WorkerID=worker_data["WorkerID"])
         worker_serializer = WorkerSerializer(worker, data=worker_data)
@@ -49,10 +53,10 @@ def workerApi(request: request.HttpRequest, id=0):
     elif request.method == 'DELETE':
         # id = 1
         id = JSONParser().parse(request)["id"]
-
         worker = Worker.objects.get(WorkerID=id)
         worker.delete()
         return JsonResponse("Deleted Successfully!!",safe=False) 
+
 
 @csrf_exempt
 def testWorkerApi(request: request.HttpRequest, id=0):
@@ -61,6 +65,7 @@ def testWorkerApi(request: request.HttpRequest, id=0):
 
         worker = Worker.objects.get(WorkerID=id)
         # worker = WorkerSerializer(worker)
+        print("-"*10, worker.WorkerIP, worker.WorkerName, worker.RmqPassword)
         response = test_connection(worker.WorkerIP, worker.WorkerName, worker.RmqPassword)
         return JsonResponse(response,safe=False)
 
@@ -98,7 +103,7 @@ def parserEditApi(request: request.HttpRequest, id=0):
     elif request.method == 'DELETE':
         try:
             _id = JSONParser().parse(request)["id"]
-            object = Worker.objects.get(id=_id)
+            object = Parser.objects.get(id=_id)
             object.delete()
             return JsonResponse("Deleted Successfully!!",safe=False)
         except:
@@ -127,3 +132,70 @@ def loadPostHtml(request: request.HttpRequest):
     
     return JsonResponse([], safe=False)
  
+
+@csrf_exempt
+def doCrawlApi(request: request.HttpRequest):
+    if request.method == 'POST':
+        request = JSONParser().parse(request)
+        doCrawl(request)    
+        return JsonResponse("", safe=False)
+    
+@csrf_exempt
+def doParseApi(request: request.HttpRequest):
+    if request.method == 'POST':
+        request = JSONParser().parse(request)
+        doParse(request)   
+        return JsonResponse("", safe=False)
+
+@csrf_exempt
+def getWorkerInfoApi(request: request.HttpRequest):
+    if request.method == 'GET':
+        return JsonResponse(getAllWorkers(), safe=False)
+
+@csrf_exempt
+def stopWorkerApi(request: request.HttpRequest):
+    if request.method == 'POST':
+        request = JSONParser().parse(request)
+        stopWorker(request["id"])
+
+    return JsonResponse("", safe=False)
+
+@csrf_exempt
+def pauseWorkerApi(request: request.HttpRequest):
+    if request.method == 'POST':
+        request = JSONParser().parse(request)
+        pauseWorker(request["id"])
+
+    return JsonResponse("", safe=False)
+
+@csrf_exempt
+def stopAllWorkerApi(request: request.HttpRequest):    
+    stopAllWorkers()
+    return JsonResponse("", safe=False)
+
+@csrf_exempt
+def toggleShieldApi(request: request.HttpRequest):
+    if request.method == 'POST':
+        request = JSONParser().parse(request)
+        toggleShield(request["id"])
+    return JsonResponse("", safe=False)
+
+# ----------------------------------------------------------------------------------------------------------------------------------------------------
+
+from Workers.utility.Database import MongoDB
+@csrf_exempt
+def test(request: request.HttpRequest):
+    db = MongoDB()
+    model = db.get_parser_model("nha-cho-tot-com")
+    for data in model:
+        try:
+            data["len_valid"] = int(data["len_valid"])
+        except:
+            data["len_valid"] = 1
+
+        _serializer = ParserSerializer(data=data)
+
+        if _serializer.is_valid(raise_exception=True):
+            _serializer.save()
+
+    return JsonResponse("hello", safe=False)

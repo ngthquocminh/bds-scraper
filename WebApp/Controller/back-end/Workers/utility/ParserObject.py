@@ -115,6 +115,7 @@ class ParserObject(object):
         except:
             # traceback.print_exc()
             ""  
+            
         eff = 1- (none_attr_count / len(detail))
         self.__parse_result = {"detail":detail,"code":"OK","eff": eff}
         return detail
