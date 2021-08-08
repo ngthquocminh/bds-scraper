@@ -16,14 +16,12 @@ def parse(data, many:bool=False, model_name=None):
     parser_model = None
     if model_name:
         parser_model=ParserModelSelector(model_key=model_name)
-        if not isinstance(parser_model.get_model(), pd.DataFrame):
-            parser_model = None
 
     if isinstance(data,list) and many:
         result = []
         for post in data:
             
-            engine = ParserEngines(post=post,parser_model=parser_model,test_mode=True)
+            engine = ParserEngines(post=post,parser_model=parser_model,test_mode=True, threshold=0)
             _r = engine.process_post()
             result.append(_r["doc"] if _r["code"] == "OK" else {})
         return result

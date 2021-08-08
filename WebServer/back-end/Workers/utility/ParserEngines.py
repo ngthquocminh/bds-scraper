@@ -6,12 +6,13 @@ from datetime import datetime, date
 
 import hashlib
 
-from Workers.utility.ParserObject import XpathSelectorParser
+from Workers.utility.ParserObject import XpathSelectorParser, SpacyParser, SpacyModel
 from Workers.utility.ParserModelSelector import ParserModelSelector
 from Workers.utility.LibFunc import clean_trash
 
 class ParserEngines(object):
-    def __init__(self, post:dict, parser_model:ParserModelSelector, test_mode:bool=True):
+    def __init__(self, post:dict, parser_model:ParserModelSelector, test_mode:bool=True, threshold=0.5):
+        self.threshold = threshold
         self.__post = post
         self.__parser_model = parser_model
         self.__test_mode = test_mode
@@ -43,27 +44,32 @@ class ParserEngines(object):
 
         page_source = clean_trash(self.__post['html'])
 
-        if self.__parser_model == None:
+        if (not isinstance(self.__parser_model, ParserModelSelector)) or \
+            ((not isinstance(self.__parser_model.get_model(), pd.DataFrame)) and (not isinstance(self.__parser_model.get_model(), SpacyModel))):
             self.__parser_model = ParserModelSelector(_url=post_url, _html=page_source)
-        if self.__parser_model.get_model() is not None:
-            def date_convert(attr):
-                try:
-                    crawl_date = datetime.strptime(self.__post["date"], '%d/%m/%Y').date()
-                    post_date = self.__parser_model.get_date(attr,crawl_date)
-                    return post_date.strftime("%d/%m/%Y") if post_date else None
-                except:
-                    # traceback.print_exc()
-                    return None
 
+        def date_convert(attr):
+            try:
+                crawl_date = datetime.strptime(self.__post["date"], '%d/%m/%Y').date()
+                post_date = self.__parser_model.get_date(attr,crawl_date)
+                return post_date.strftime("%d/%m/%Y") if post_date else None
+            except:
+                # traceback.print_exc()
+                return None
+
+        if isinstance(self.__parser_model.get_model(), pd.DataFrame):            
             parser_obj = XpathSelectorParser(page_source, self.__parser_model.get_model())
-            result  = parser_obj.parse_html({"date":date_convert})
+        elif isinstance(self.__parser_model.get_model(), SpacyModel):
+            parser_obj = SpacyParser(page_source, self.__parser_model.get_model())
 
-            if self.__test_mode:
-                doc["parse_score"] = parser_obj.parser_result()["eff"]
+        result  = parser_obj.parse_html({"date":date_convert})
 
-            if parser_obj.parser_result()["eff"] > 0.5 or self.__test_mode:
-                doc["detail"] = result
-                _status = "OK"
+        if self.__test_mode:
+            doc["parse_score"] = parser_obj.parser_result()["eff"]
+
+        if parser_obj.parser_result()["eff"] >= self.threshold or self.__test_mode:
+            doc["detail"] = result
+            _status = "OK"
 
 
         return {"doc":doc,"code":_status}

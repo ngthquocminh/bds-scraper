@@ -1,13 +1,13 @@
 
 import pandas as pd
 from time import time
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta
 from slugify import slugify
 import re
+import pandas as pd
 
-from Workers.models import Parser
-from Workers.serializers import ParserSerializer
-from Workers.utility.ParserObject import ParserObject
+
+from Workers.utility.ParserObject import ParserObject, SpacyModel
 from Workers.utility.LibFunc import load_parser_set
 
 
@@ -33,16 +33,25 @@ class ParserModelSelector(ParserObject):
         }
 
     def get_model(self):
-        if self.__model is None:
-            if isinstance(self.__key_site,str) and (self.__key_site in self.__as8a9z):
-                print("---->", self.__key_site)
-                return load_parser_set(self.__key_site)
+        if (not isinstance(self.__model, pd.DataFrame)) and (not isinstance(self.__model, SpacyModel)) and isinstance(self.__key_site,str):
+            print("---->", self.__key_site)
 
-            for _site_key in self.__as8a9z:
-                site = self.__as8a9z[_site_key]
-                if site["url-check-rgx"].search(self.__url) and (site["html-check-rgx"] is None or site["html-check-rgx"].search(self.__html)):         
-                    self.__key_site = _site_key
-                    self.__model = pd.DataFrame(load_parser_set(self.__key_site))
+            if self.__key_site == "spacy-parser":
+                self.__model = SpacyModel()
+                print("---->  self.__model = SpacyModel()")
+
+            elif (self.__key_site in self.__as8a9z):
+                self.__model = pd.DataFrame(load_parser_set(self.__key_site))
+                print(self.__model)
+                print("---->  self.__model = pd.DataFrame(load_parser_set(self.__key_site))")
+
+            else:
+
+                for _site_key in self.__as8a9z:
+                    site = self.__as8a9z[_site_key]
+                    if site["url-check-rgx"].search(self.__url) and (site["html-check-rgx"] is None or site["html-check-rgx"].search(self.__html)):         
+                        self.__key_site = _site_key
+                        self.__model = pd.DataFrame(load_parser_set(self.__key_site))
 
         # display(self.__model)
         return self.__model
@@ -93,3 +102,4 @@ class ParserModelSelector(ParserObject):
                 _date = date_origin
 
         return _date #.strftime("%d/%m/%Y")
+

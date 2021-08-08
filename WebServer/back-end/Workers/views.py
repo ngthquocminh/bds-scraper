@@ -116,7 +116,7 @@ def testParserApi(request: request.HttpRequest):
     if request.method == 'POST':
 
         request = JSONParser().parse(request)
-        if "model_name_for_all" in request and not request["model_name_for_all"] in ["bat-dong-san-com-vn","cho-tot-com","nha-dat-247-com-vn"]:
+        if "model_name_for_all" in request and not request["model_name_for_all"] in ["bat-dong-san-com-vn","cho-tot-com","nha-dat-247-com-vn", "spacy-parser"]:
             request.pop("model_name_for_all")
 
         dict_res = doTestOnParser(request)
