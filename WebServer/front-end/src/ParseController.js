@@ -333,11 +333,10 @@ export class ParseController extends Component {
                                 <Form.Label>Parser Model</Form.Label>
                                 <Form.Group controlId="model">                                  
                                     <Form.Control as="select" defaultValue="auto" name="model">
-                                        <option value="auto">auto</option>
-                                        <option value="spacy-parser">spacy-parser</option>
                                         <option value="bat-dong-san-com-vn">bat-dong-san-com-vn</option>
                                         <option value="nha-cho-tot-com">cho-tot-com</option>
                                         <option value="nha-dat-247-com-vn">nha-dat-247-com-vn</option> 
+                                        <option value="spacy-parser">spacy-parser</option>
                                     </Form.Control>
                                 </Form.Group>
                             </Col>

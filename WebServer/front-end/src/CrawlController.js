@@ -284,7 +284,7 @@ export class CrawlController extends Component {
                 <div className="container">
                     <div className="row">
                         <div className="col">
-                        <i class="fas fa-pause"></i> : pause, <i class="fas fa-stop"></i> : stop, <i class="fas fa-shield-alt"></i> : anti-crawling-resisting mode
+                        <i class="fas fa-pause"></i> : pause, <i class="fas fa-stop"></i> : stop, <i class="fas fa-shield-alt"></i> : anti-crawling-resistance mode
                         </div>
                         <div className="text-right col">
                             <Button className="mr-2" variant="danger"
