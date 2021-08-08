@@ -92,6 +92,7 @@ export class ParserConfig extends Component{
                         <th>Regex_take</th>
                         <th>Regex_valid</th>
                         <th>Len_valid</th>
+                        <th>Importance</th>
                         <th>Option</th>
 
                         </tr>
@@ -106,6 +107,7 @@ export class ParserConfig extends Component{
                                 <td>{parser.regex_take}</td>
                                 <td>{parser.regex_valid}</td>
                                 <td>{parser.len_valid}</td>
+                                <td>{parser.importance}</td>
 
                                 <td>
                                 <ButtonToolbar>

@@ -58,6 +58,7 @@ export class ParseController extends Component {
                 type: event.target.type.value,
                 model: event.target.model.value,
                 status: event.target.status.value,
+                num_workers: event.target.num_workers.value,
                 limit: event.target.limit.value
             })
         })
@@ -310,7 +311,7 @@ export class ParseController extends Component {
                                 : <div></div>
                                 }
                             </Col>
-                            <Col xs={2}>
+                            <Col xs={1}>
                                 <Form.Group controlId="type">
                                     <Form.Label>Type</Form.Label>
                                     <Form.Control defaultValue="house" as="select" name="type">
@@ -342,14 +343,22 @@ export class ParseController extends Component {
                             </Col>
                             <Col xs={1}>
                                 <Form.Group>
-                                    <Form.Label>Limit</Form.Label>
+                                    <Form.Label>Limit of posts</Form.Label>
                                     <Form.Control type="number" name="limit" defaultValue="20000"
                                         placeholder="limit" />
                                 </Form.Group>
                             </Col>
                         </Row>
-                        <Row>
-                            <Col>
+                        <Row className="text-right">
+                            <Col></Col>
+                            <Col xs={2}>
+                                <Form.Group>
+                                    <Form.Label>Number of workers</Form.Label>
+                                    <Form.Control type="number" name="num_workers" defaultValue="3"
+                                    placeholder="num of workers"/>
+                                </Form.Group>
+                            </Col>
+                            <Col xs={2}>
                                 <Form.Label className="text-white"> button </Form.Label>
                                 <Form.Group>
                                     <Button variant="primary" type="submit">

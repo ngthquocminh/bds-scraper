@@ -25,7 +25,8 @@ export class AddNewParser extends Component{
                 pos_take:event.target.pos_take.value,
                 regex_take:event.target.regex_take.value,
                 regex_valid:event.target.regex_valid.value,
-                len_valid:event.target.len_valid.value        
+                len_valid:event.target.len_valid.value,
+                importance:event.target.importance.value  
             })
         })
         .then(res=>res.json())
@@ -95,6 +96,12 @@ export class AddNewParser extends Component{
                                         <Form.Label>Len_valid</Form.Label>
                                         <Form.Control type="number" name="len_valid" required
                                         placeholder="Len_valid"/>
+                                    </Form.Group>
+
+                                    <Form.Group controlId="importance ">
+                                        <Form.Label>Importance</Form.Label>
+                                        <Form.Control type="number" name="importance" required
+                                        placeholder="Importance"/>
                                     </Form.Group>
                                     
                                     <Form.Group>

@@ -126,7 +126,7 @@ export class ParserTesting extends Component{
                                 <Form.Label>Site</Form.Label>
                                 <Form.Control  defaultValue="" as="select" name="site">
                                     <option value="batdongsan.com.vn">batdongsan.com.vn</option>
-                                    <option value="chotot.com">nha.chotot.com</option>
+                                    <option value="nha.chotot.com">nha.chotot.com</option>
                                     <option value="nhadat247.com.vn">nhadat247.com.vn</option>
                                 </Form.Control>
                             </Form.Group>

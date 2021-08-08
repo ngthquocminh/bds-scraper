@@ -25,7 +25,8 @@ export class EditParser extends Component{
                 pos_take:event.target.pos_take.value,
                 regex_take:event.target.regex_take.value,
                 regex_valid:event.target.regex_valid.value,
-                len_valid:event.target.len_valid.value            
+                len_valid:event.target.len_valid.value,
+                importance:event.target.importance.value     
             })
         })
         .then(res=>res.json())
@@ -107,6 +108,12 @@ centered
                         <Form.Label>Len_valid</Form.Label>
                         <Form.Control type="number" name="len_valid" required
                         defaultValue={this.props.editData.len_valid}
+                        placeholder="Len_valid"/>
+                    </Form.Group>
+                    <Form.Group controlId="ximportance ">
+                        <Form.Label>Importance</Form.Label>
+                        <Form.Control type="number" name="importance" required
+                        defaultValue={this.props.editData.importance}
                         placeholder="Len_valid"/>
                     </Form.Group>
                     

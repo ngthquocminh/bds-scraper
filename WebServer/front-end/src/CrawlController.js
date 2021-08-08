@@ -44,11 +44,13 @@ export class CrawlController extends Component {
             body: JSON.stringify({
                 site: event.target.site.value,
                 shield:event.target.shield.checked,
+                type: event.target.type.value,
                 post_date: this.state.postDateEnable ? {
                     from: event.target.post_date_m_from.value + "/" + event.target.post_date_y_from.value,
                     to: event.target.post_date_m_to.value + "/" + event.target.post_date_y_to.value
                 } : null,
-                type: event.target.type.value,
+                limit: event.target.limit.value,
+                num_workers: event.target.num_workers.value,
                 limit: event.target.limit.value
             })
         })
@@ -147,7 +149,7 @@ export class CrawlController extends Component {
                                     <Form.Label>Site</Form.Label>
                                     <Form.Control defaultValue="batdongsan.com.vn" as="select" name="site">
                                         <option value="batdongsan.com.vn">batdongsan.com.vn</option>
-                                        <option value="chotot.com">nha.chotot.com</option>
+                                        <option value="nha.chotot.com">nha.chotot.com</option>
                                         <option value="nhadat247.com.vn">nhadat247.com.vn</option>
                                     </Form.Control>
                                 </Form.Group>
@@ -252,14 +254,22 @@ export class CrawlController extends Component {
                             </Col>
                             <Col xs={1}>
                                 <Form.Group>
-                                    <Form.Label>Limit</Form.Label>
+                                    <Form.Label>Limit of posts</Form.Label>
                                     <Form.Control type="number" name="limit" defaultValue="20000"
                                         placeholder="limit" />
                                 </Form.Group>
                             </Col>
                         </Row>
-                        <Row>
-                            <Col>
+                        <Row className="text-right">
+                            <Col></Col>
+                            <Col xs={2}>
+                                <Form.Group>
+                                    <Form.Label>Limit of workers</Form.Label>
+                                    <Form.Control type="number" name="num_workers" defaultValue="3"
+                                    placeholder="num of workers"/>
+                                </Form.Group>
+                            </Col>
+                            <Col xs={2}>
                                 <Form.Label className="text-white"> button </Form.Label>
                                 <Form.Group>
                                     <Button variant="primary" type="submit">
