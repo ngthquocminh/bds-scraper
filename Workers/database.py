@@ -2,6 +2,8 @@ from pymongo import MongoClient
 from pprint import pprint
 from azure.cosmos import exceptions, CosmosClient, PartitionKey
 import traceback
+from datetime import datetime
+import random
 
 class MongoDB:
     ASC = 1
@@ -28,14 +30,20 @@ class MongoDB:
 
 
     def get_parser_model(self,parser_name):
-        res = self.db_parser.find({"site":parser_name})   
-        return [i for i in res]
+        res = self.db_parser.find({"site":parser_name})
+        result = [i for i in res if i.pop("_id")]
+        res.close()
+        return result
 
     def update_parser_attr(self,data:dict):
-        res = self.db_parser.update_one({"id": data["id"]}, {"$set":{"$and":[{attr:data[attr]} for attr in data]}})
+        res = self.db_parser.replace_one({"id": data["id"]}, data)
         return res
 
     def insert_parser_attr(self,data:dict):
+        if not isinstance(data["id"],int):
+                timestamp = float(datetime.timestamp(datetime.now())%1)
+                id = (timestamp*1000) + random.randint(100, 999)*1000
+                data["id"] = id
         res = self.db_parser.insert_one(data)
         return res
 
