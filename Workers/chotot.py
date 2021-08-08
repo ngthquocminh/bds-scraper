@@ -146,7 +146,7 @@ class ChoTotCrawler(CrawlerObject):
                 return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
             }
 
-            var phone = getElementByXpath("/html/body/div[1]/div/div[1]/div/div[4]/div[3]/div/linkcontact/span");
+            var phone = getElementByXpath("//*[@id='__next']/div[3]/div[1]/div/div[4]/div[3]/div/linkcontact");
             if (phone != null) {
                 phone.click();
             }                    
