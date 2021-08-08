@@ -9,6 +9,7 @@ class TaskSender():
         return
 
     def connect(self,host,name=None,password=None,port=5672):
+        name = None
         try:
             if (name is not None) and (password is not None) and isinstance(password,str) and isinstance(name,str):
                 credentials = pika.PlainCredentials(name,password)

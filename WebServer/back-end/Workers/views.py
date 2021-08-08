@@ -17,6 +17,7 @@ from Workers.utility.test_parser import doTestOnParser
 from Workers.utility.LibFunc import searchPostHtml
 from Workers.utility.LibFunc import load_parser_set
 from Workers.utility.workers_handeling import doCrawl, doParse, getAllWorkers, stopWorker, pauseWorker, stopAllWorkers, toggleShield
+from Workers.utility.Database import DBObject
 
 # Create your views here.
 
@@ -77,34 +78,34 @@ def parserSetGetApi(request: request.HttpRequest, id=0):
     if request.method == "GET":
         site_name    = get_sitename(request.get_raw_uri())
         # print(set_name)
-        return JsonResponse(load_parser_set(site_name), safe=False)
+        parser_set = load_parser_set(site_name)
+        # print(parser_set)
+        return JsonResponse(parser_set, safe=False)
 
 @csrf_exempt
 def parserEditApi(request: request.HttpRequest, id=0):    
     if request.method == 'POST':
-
-        _data = JSONParser().parse(request)
-        _serializer = ParserSerializer(data=_data)
-
-        if _serializer.is_valid(raise_exception=True):
-            _serializer.save()
+        try:
+            _data = JSONParser().parse(request)
+            DBObject().insert_parser_attr(data=_data)
             return JsonResponse("Added Successfully",safe=False)
-        return JsonResponse("Added Failed!!", safe=False)
+        except:
+            traceback.print_exc()
+            return JsonResponse("Added Failed!!", safe=False)
     
     elif request.method == 'PUT':
-        _data = JSONParser().parse(request)
-        object = Parser.objects.get(id=int(_data["id"]))
-        _serializer = ParserSerializer(object , data=_data)
-        if _serializer.is_valid():
-            _serializer.save()
+        try:
+            _data = JSONParser().parse(request)
+            DBObject().update_parser_attr(_data)
             return JsonResponse("Updated Successfully",safe=False)
-        return JsonResponse("Added Failed!!",safe=False)
+        except:
+            traceback.print_exc()
+            return JsonResponse("Added Failed!!",safe=False)
     
     elif request.method == 'DELETE':
         try:
             _id = JSONParser().parse(request)["id"]
-            object = Parser.objects.get(id=_id)
-            object.delete()
+            DBObject().delete_parser_attr(_id)
             return JsonResponse("Deleted Successfully!!",safe=False)
         except:
             return JsonResponse("Deleted Failed!!",safe=False)

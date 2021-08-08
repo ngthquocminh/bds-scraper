@@ -6,6 +6,8 @@ from Workers.serializers import ParserSerializer
 from Workers.utility.Database import DBObject
 import traceback
 
+db = DBObject()
+
 def strip_text(text):
     return text.replace("\t", "").replace("\n", "").strip()
 
@@ -22,10 +24,9 @@ def clean_trash(html):
     html = re.sub("( +)"," ", html)
     return re.sub("(<!--.*?-->)|(<script.*?>.*?</script>)|(<style.*?>.*?</style>)", "", html, flags=re.DOTALL)
 
-def load_parser_set(key:str):        
-    parser_set_obj  = Parser.objects.raw("""SELECT * FROM Workers_parser WHERE site="{_parser_set}" """.format(_parser_set=key))
-    serializers = ParserSerializer(parser_set_obj, many=True)
-    return serializers.data if isinstance(serializers.data, list) else [serializers.data]
+def load_parser_set(key:str):     
+    print("load_parser_set " + key) 
+    return db.get_parser_model(key)
 
 def d_range(from_to): 
     # from_to ~ {"from":"8/2021","to":"10/2021"}

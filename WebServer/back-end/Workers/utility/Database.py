@@ -1,7 +1,9 @@
 from pymongo import MongoClient
 from pprint import pprint
+from datetime import datetime
 from azure.cosmos import exceptions, CosmosClient, PartitionKey
 import traceback
+import random
 
 class MongoDB:
     ASC = 1
@@ -28,14 +30,20 @@ class MongoDB:
 
 
     def get_parser_model(self,parser_name):
-        res = self.db_parser.find({"site":parser_name})   
-        return [i for i in res]
+        res = self.db_parser.find({"site":parser_name})
+        result = [i for i in res if i.pop("_id")]
+        res.close()
+        return result
 
     def update_parser_attr(self,data:dict):
-        res = self.db_parser.update_one({"id": data["id"]}, {"$set":{"$and":[{attr:data[attr]} for attr in data]}})
+        res = self.db_parser.replace_one({"id": data["id"]}, data)
         return res
 
     def insert_parser_attr(self,data:dict):
+        if not isinstance(data["id"],int):
+                timestamp = float(datetime.timestamp(datetime.now())%1)
+                id = (timestamp*1000) + random.randint(100, 999)*1000
+                data["id"] = id
         res = self.db_parser.insert_one(data)
         return res
         
@@ -182,7 +190,16 @@ class DBObject: # Interface
         return self.db_object.workAs(worker_id)
 
     def get_parser_model(self,parser_name):
-        return self.db_object.get_parser_model(self,parser_name)
+        return self.db_object.get_parser_model(parser_name)
+
+    def delete_parser_attr(self,id):
+        return self.db_object.delete_parser_attr(id)
+
+    def update_parser_attr(self,data:dict):        
+        return self.db_object.update_parser_attr(data)
+
+    def insert_parser_attr(self,data:dict):
+        return self.db_object.insert_parser_attr(data)
 
     def cancel_task(self, worker_id):
         return self.db_object.cancel_task(worker_id)  

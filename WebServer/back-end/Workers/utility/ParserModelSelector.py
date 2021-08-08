@@ -35,6 +35,7 @@ class ParserModelSelector(ParserObject):
     def get_model(self):
         if self.__model is None:
             if isinstance(self.__key_site,str) and (self.__key_site in self.__as8a9z):
+                print("---->", self.__key_site)
                 return load_parser_set(self.__key_site)
 
             for _site_key in self.__as8a9z:

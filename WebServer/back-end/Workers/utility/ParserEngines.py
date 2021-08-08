@@ -6,7 +6,7 @@ from datetime import datetime, date
 
 import hashlib
 
-from Workers.utility.ParserObject import ParserObject
+from Workers.utility.ParserObject import XpathSelectorParser
 from Workers.utility.ParserModelSelector import ParserModelSelector
 from Workers.utility.LibFunc import clean_trash
 
@@ -55,13 +55,13 @@ class ParserEngines(object):
                     # traceback.print_exc()
                     return None
 
-            parser_obj = ParserObject(page_source, self.__parser_model.get_model())
+            parser_obj = XpathSelectorParser(page_source, self.__parser_model.get_model())
             result  = parser_obj.parse_html({"date":date_convert})
 
             if self.__test_mode:
                 doc["parse_score"] = parser_obj.parser_result()["eff"]
 
-            if parser_obj.parser_result()["eff"] > 5.0 or self.__test_mode:
+            if parser_obj.parser_result()["eff"] > 0.5 or self.__test_mode:
                 doc["detail"] = result
                 _status = "OK"
 

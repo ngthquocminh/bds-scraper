@@ -11,12 +11,15 @@ def doParse(request: dict):
     list_post = [post["url_hash"] for post in searchPostHtml(request)["content"]]
     if len(list_post) < 1:
         return False
-
+        m
+    num_workers = int(request["num_workers"]) if "num_workers" in request else None
     type  = request["type"]  if "type"  in request else "all"
     site  = request["site"]  if "site"  in request else "all"
     model = request["model"] if "model" in request else "null"
 
     workers = db.db_object.get_all_free_workers()
+    workers = workers[:num_workers]
+
     print(workers)
     if len(list_post) < 10:
         print(len(list_post))
@@ -108,14 +111,14 @@ def getAllWorkers():
 def doCrawl(request: dict):
 
     site = request["site"] if "site" in request else None
-
-
+    num_workers = int(request["num_workers"]) if "num_workers" in request else None
     date = request["post_date"] if "post_date" in request else None
     shield = 1 if "shield" in request and request["shield"] == True else 0
     type = request["type"] if "type" in request else "all"
     limit_post = int(request["limit"]) if "limit" in request else -1
 
     workers = db.db_object.get_all_free_workers()
+    workers = workers[:num_workers]
 
     # limit and date are devider params
 
