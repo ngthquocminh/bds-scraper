@@ -1,8 +1,8 @@
 
 import pandas as pd
 from time import time
-from datetime import datetime, timedelta
-
+from datetime import datetime, timedelta, date
+from slugify import slugify
 import re
 
 from Workers.models import Parser
@@ -49,21 +49,47 @@ class ParserModelSelector(ParserObject):
 
     def get_date(self, date_str:str, date_origin:datetime):
         _date = None
-        
+
+        if not isinstance(date_str, str):
+            return _date
+
         if self.__key_site == "bat-dong-san-com-vn":
             
             if isinstance(date_str, str) and re.compile("^[0-9]{2}/[0-9]{2}/[0-9]{4}$").search(date_str):
                 _date = datetime.strptime(date_str, '%d/%m/%Y').date()
-            elif date_str == "hôm kia":
-                _date = date_origin - timedelta(days=2)
-            elif date_str == "hôm qua":
-                _date = date_origin - timedelta(days=1)
-            elif date_str == "hôm nay":
-                _date = date_origin
             
-        elif self.__model == "cho-tot-com":
-            ""
-        elif self.__model == "nha-dat-247-com-vn":
-            ""
+        elif self.__key_site == "nha-cho-tot-com":
+            _date = None
+            print(date_str)
+            date_str = slugify(date_str.lower())
+            _l = date_str.split("-")
+            if "hom-qua" in date_str:
+                _date = date_origin - timedelta(days=1)
+            elif "thang" in _l:
+                _n = int(_l[_l.index("thang") - 1])
+                _date = date_origin - timedelta(days=30*_n)
+            elif "tuan" in _l:
+                _n = int(_l[_l.index("tuan") - 1])
+                _date = date_origin - timedelta(days=7*_n)
+            elif "ngay" in _l:
+                _n = int(_l[_l.index("ngay") - 1])
+                _date = date_origin - timedelta(days=1)
+            elif ("hom-nay" in date_str) or ("gio" in _l) or ("phut" in _l):
+                _date = date_origin
+            elif re.compile("^[0-9]{2}-[0-9]{2}-[0-9]{4}$").search(date_str):
+                _date = datetime.strptime(date_str, '%d-%m-%Y').date()
+                
+        elif self.__key_site == "nha-dat-247-com-vn":
+            
+            date_str = slugify(date_str.lower())
+
+            if re.compile("^[0-9]{2}-[0-9]{2}-[0-9]{4}$").search(date_str):
+                _date = datetime.strptime(date_str, '%d-%m-%Y').date()
+            elif "hom-kia" in date_str:
+                _date = date_origin - timedelta(days=2)
+            elif "hom-qua" in date_str:
+                _date = date_origin - timedelta(days=1)
+            elif "hom-nay" in date_str:
+                _date = date_origin
 
         return _date #.strftime("%d/%m/%Y")
