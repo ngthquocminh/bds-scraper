@@ -25,6 +25,9 @@ class ParserObject(object):
         none_attr_count = 0
         detail = dict()
 
+        _total_score = 0
+        _attr_score = 0
+        
         for index, row in self.__model.iterrows():
             
             feature = row["features"]
@@ -106,6 +109,10 @@ class ParserObject(object):
 
             if attr is None:
                 none_attr_count += 1
+            else:
+                _attr_score += row["importance"]
+
+            _total_score += row["importance"]
 
             detail[feature] = attr.strip() if isinstance(attr, str) else attr
 
@@ -116,6 +123,6 @@ class ParserObject(object):
             # traceback.print_exc()
             ""  
             
-        eff = 1- (none_attr_count / len(detail))
+        eff = _attr_score/_total_score
         self.__parse_result = {"detail":detail,"code":"OK","eff": eff}
         return detail
