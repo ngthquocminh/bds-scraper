@@ -16,26 +16,9 @@ from selenium.webdriver.common.by import By
 from database import DBObject
 from Browser import Browser
 from Settings import Settings
+from CrawlerObject import CrawlerObject
 
-# "apartment": ["https://nhadat247.com.vn/ban-can-ho-chung-cu.html"],
-# "house": ["https://nhadat247.com.vn/ban-nha-rieng.html", "https://nhadat247.com.vn/ban-nha-biet-thu-lien-ke.html", "https://nhadat247.com.vn/ban-nha-mat-pho.html"],
-# "land": ["https://nhadat247.com.vn/ban-dat-nen-du-an.html", "https://nhadat247.com.vn/ban-dat.html"]
-
-def get_seed_url(post_type):
-    data = {
-        "apartment" : ["https://batdongsan.com.vn/ban-can-ho-chung-cu"],
-        "house" : ["https://batdongsan.com.vn/ban-nha-rieng", "https://batdongsan.com.vn/ban-nha-biet-thu-lien-ke", "https://batdongsan.com.vn/ban-nha-mat-pho"],
-        "land" : ["https://batdongsan.com.vn/ban-dat", "https://batdongsan.com.vn/ban-dat-nen-du-an"]
-    }
-    return data[post_type] if post_type in data else [url for e in data for url in data[e]]
-
-def save_list(data: list, file_name):
-    print("Checkpoint: ", file_name)
-    with open(file_name, 'w') as file:
-        file.write("\n".join(set(data)))
-        file.close()
-
-class BatDongSanCrawler():
+class BatDongSanCrawler(CrawlerObject):
 
     BASE_URL = "https://batdongsan.com.vn/"
     SAVE_CHECK_POINT = 5
@@ -80,7 +63,7 @@ class BatDongSanCrawler():
 
         self.post_type  = post_type
         self.buffer     = []
-        self.seed_url   = get_seed_url(post_type)
+        self.seed_url   = BatDongSanCrawler.get_seed_url(post_type)
 
         self.__current_url = ""
         self.__failed_urls = []
@@ -300,8 +283,8 @@ class BatDongSanCrawler():
                 self.update_crawling_status_info(post_count, len(self.__failed_urls))
                 self.update_crawling_log()
 
-                save_list(local_urls,   self.file_log_new_url)
-                save_list(visited_post, self.file_log_visited_url)
+                BatDongSanCrawler.save_list(local_urls,   self.file_log_new_url)
+                BatDongSanCrawler.save_list(visited_post, self.file_log_visited_url)
 
             num_visited += 1
             print("  >> num: ", post_count)  
@@ -315,8 +298,25 @@ class BatDongSanCrawler():
         self.browser.close()
         print('CRAWLING DONE')
 
+    def rotate_ip(self, enable=False):
+        self.browser.set_rotate_ip(enable)
+        return
 
     def save_data(self):
         self.db_object.insert_html_data(self.buffer, many=True)
         # clear buffer
         self.buffer = []
+
+    def get_seed_url(post_type):
+        data = {
+            "apartment" : ["https://batdongsan.com.vn/ban-can-ho-chung-cu"],
+            "house" : ["https://batdongsan.com.vn/ban-nha-rieng", "https://batdongsan.com.vn/ban-nha-biet-thu-lien-ke", "https://batdongsan.com.vn/ban-nha-mat-pho"],
+            "land" : ["https://batdongsan.com.vn/ban-dat", "https://batdongsan.com.vn/ban-dat-nen-du-an"]
+        }
+        return data[post_type] if post_type in data else [url for e in data for url in data[e]]
+
+    def save_list(data: list, file_name):
+        print("Checkpoint: ", file_name)
+        with open(file_name, 'w') as file:
+            file.write("\n".join(set(data)))
+            file.close()
