@@ -1,7 +1,6 @@
 import sys
 import os
 
-from batdongsan import BatDongSanCrawler
 import traceback
 from ParserEngines import doParse
 from receiver import message_loads
@@ -12,9 +11,18 @@ from Settings import Settings
 
 db = DBObject()
 
-def start_crawling(date_from=None, date_to=None, post_type=None, resume=False, all_date:bool = False,limit=-1):
+def start_crawling(site, date_from=None, date_to=None, post_type=None, resume=False, all_date:bool = False,limit=-1):
     ""
-    crawler = BatDongSanCrawler(post_type=post_type, date_from=date_from, date_to=date_to, resume=resume, limit=limit)
+    crawler = None
+    if site == "batdongsan.com.vn":
+        from batdongsan import BatDongSanCrawler as Crawler
+    elif site == "nha.chotot.com":
+        from chotot import ChoTotCrawler as Crawler
+    elif site == "nhadat247.com.vn":
+        from nhadat247 import NhaDat247 as Crawler
+
+    crawler = Crawler(post_type=post_type, date_from=date_from, date_to=date_to, resume=resume, limit=limit)
+
     crawler.obtain_data()
     db.finishing_task(Settings.worker_id)
 
@@ -29,13 +37,15 @@ def main(params):
     try:
         if params["command"] == "crawl":
             if "resume" in params and int(params["resume"]) == 1:
-                start_crawling(resume=True)
+                _site = db.query_wokers_info(Settings.worker_id)["str_info"].split(", ")[0].split(": ")[1]
+                start_crawling(site=_site, resume=True)
             else:
+                site      = params["site"]
                 date_from = params["post-date"].split("_")[0].replace("-","/")
                 date_to   = params["post-date"].split("_")[1].replace("-","/")
                 post_type = params["type"]
                 limit     = params["limit"] if "limit" in params else -1
-                start_crawling(date_from=date_from, date_to=date_to, post_type=post_type,limit=limit)
+                start_crawling(site=site, date_from=date_from, date_to=date_to, post_type=post_type,limit=limit)
 
         elif params["command"] == "parse":
             print("Go to parse")
