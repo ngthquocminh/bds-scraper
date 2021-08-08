@@ -1,3 +1,4 @@
+from base64 import decode
 import re
 import sys
 
@@ -9,7 +10,6 @@ from lxml.etree import ElementTree as ET
 from lxml.etree import tostring
 from itertools import chain
 from os import listdir
-from parse import ParseHTML
 from slugify import slugify
 import json
 
@@ -33,64 +33,35 @@ from datetime import datetime, date, timedelta
 from urllib.parse import urlsplit
 from urllib.parse import urlparse
 from urllib.parse import urljoin
-
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException
-from selenium.common.exceptions import StaleElementReferenceException
-from selenium.common.exceptions import ElementClickInterceptedException
-import selenium.common.exceptions
-from selenium.webdriver import ActionChains
-
-import logging
-from selenium.webdriver.remote.remote_connection import LOGGER
-
-LOGGER.setLevel(logging.WARNING)
-
 from database import DBTarget
 
-MAXIMUM = 10000000
+MAXIMUM = 15000
 
 
 def strip_text(text):
     return text.replace("\t", "").replace("\n", "").strip()
 
-
-def get_html(url):
-    get_soup_retry_times = 4
-    for i in range(get_soup_retry_times):
-        try:
-            request = urllib.request.Request(url, data=None,
-                                             headers={"User-Agent": "Mozilla/5.0"})  # make web requests for URL
-            request = urllib.request.urlopen(request)
-            html = request.read().decode("utf8")
-
-            request.close()
-            return html
-
-            # self.driver.get(url)
-            # self.driver.set_page_load_timeout(5)
-            # return self.driver.page_source
-
-        except Exception as e:
-            # print(e.__class__)
-            print('Re-obtain this link')
-
-
-def get_url(name):
+def get_data(name):
     ""
-    df = pd.read_csv(name + '.csv')
-    return df
+    print("get data")
+    data = []
+    try:
+        file = open(name + ".json", "r")
+        # for i in range(0, 100):
+        #     print(i)
+        data = file.readlines()
+        file.close()
+    except:
+        "nodata"
+
+    return data
 
 
-class NhaDat247Parser(ParseHTML):
+class ChototParser(ParseHTML):
     MODEL_PATH = "config/"
 
     POST_LIMIT = 99999
+
 
     def __init__(self, name_get, name_save):
 
@@ -99,9 +70,10 @@ class NhaDat247Parser(ParseHTML):
         self.name_get = name_get
         self.name_save = name_save
         self.save_buffer = []
+        
 
     def save_to_db(self, row=None):
-        for i in range(5):
+        for i in range(10):
             try:                
                 return self.save_func(row)
             except:
@@ -147,7 +119,7 @@ class NhaDat247Parser(ParseHTML):
         else:
             step_save = len(self.save_buffer)
 
-        if len(self.save_buffer) == step_save:
+        if len(self.save_buffer) % step_save == 0:
             self.save_to_file(self.name_save)
             # self.save_buffer = []
 
@@ -161,6 +133,7 @@ class NhaDat247Parser(ParseHTML):
         self.save_buffer.append(post)
 
     def stringify_children(self, node):
+
         from lxml.etree import tostring
         from itertools import chain
         parts = ([node.text] +
@@ -169,26 +142,34 @@ class NhaDat247Parser(ParseHTML):
         # filter removes possible Nones in texts and tails
         return ''.join(filter(None, parts))
 
-    def get_date(self, date_str):
+    def get_date(self, date_str, crawl_date):
         _date = None
-
-        if date_str == "hôm kia":
-            _date = date.today() - timedelta(days=2)
-        elif date_str == "hôm qua":
-            _date = date.today() - timedelta(days=1)
-        elif date_str == "hôm nay":
-            _date = date.today()
+        crawl_date = datetime.strptime(crawl_date, '%d/%m/%Y').date()
+        date_str = slugify(date_str.lower())
+        _l = date_str.split("-")
+        if "hom-qua" in date_str:
+             _date = crawl_date - timedelta(days=1)
+        elif "thang" in _l:
+            _n = int(_l[_l.index("thang") - 1][0])
+            _date = crawl_date - timedelta(days=30*_n)
+        elif "tuan" in _l:
+            _n = int(_l[_l.index("tuan") - 1][0])
+            _date = crawl_date - timedelta(days=7*_n)
+        elif "ngay" in _l:
+            _n = int(_l[_l.index("ngay") - 1][0])
+            _date = crawl_date - timedelta(days=1)
+        elif "hom-nay" in date_str or "gio" in _l or "phut" in _l:
+            _date = crawl_date
         else:
-            _date = datetime.strptime(date_str, '%d/%m/%Y').date()
+            ""
+            # _date = datetime.strptime(date_str, '%d/%m/%Y').date()
 
-        return _date
-
+        return _date.strftime("%d/%m/%Y")
 
     def parseData(self, status_parse):
         """
         Retrieve necessary information for each document and save to elasticsearch
         """
-
         post = None
         file = None
         try:
@@ -196,13 +177,14 @@ class NhaDat247Parser(ParseHTML):
             post = file.readline()
         except:
             "nodata"
-        print(post)
+
         print("-" * 50)
 
         count = 1
         line = 0
         passs = False
         while post:
+
 
             line += 1
 
@@ -213,7 +195,8 @@ class NhaDat247Parser(ParseHTML):
             except:
                 post = file.readline()
                 continue
-
+            
+            
             # if passs:
             #     break
             # if post["url"] != "https://nha.chotot.com/tp-ho-chi-minh/quan-tan-phu/mua-ban-nha-dat/85110146.htm":
@@ -234,6 +217,7 @@ class NhaDat247Parser(ParseHTML):
             #     count+=1
             #     post = file.readline()
             #     continue
+            
 
             print("** POST NUMBER : ", count)
             print("** POST url : ", post_url)
@@ -241,10 +225,12 @@ class NhaDat247Parser(ParseHTML):
             print("Type: ", post_type)
             print("Status: ", post_status)
             if int(post_status) != int(status_parse):
+                post = file.readline()
                 continue
 
             model = self.read_config(post_config)
             if model is None:
+                post = file.readline()
                 continue
 
             doc = dict()
@@ -252,14 +238,15 @@ class NhaDat247Parser(ParseHTML):
             doc["url_hash"] = hashlib.md5(post_url.encode()).hexdigest()
             doc["url"] = post_url
 
+
             try:
                 doc["crawl_date"] = post["date"]
             except:
-                doc["crawl_date"] = str(date.today().strftime("%d/%m/%Y"))
+                doc["crawl_date"] = date.today().strftime("%d/%m/%Y")
 
             doc["parse_date"] = date.today().strftime("%d/%m/%Y")
             doc["status"] = int(post["status"]) + 1
-
+   
             page_source = post['html']
 
             page_source = re.sub("(<!--.*?-->)", "", page_source, flags=re.DOTALL)
@@ -273,16 +260,14 @@ class NhaDat247Parser(ParseHTML):
             detail = dict()
             none_attr_count = 0
             for index, row in model.iterrows():
-                
                 feature = row["features"]
-                
+
                 if row["features"] in detail:
                     if detail[row["features"]] != None and detail[row["features"]] != "":
                         continue
 
                 xpath = str(row["xpath"])
-
-                print(" > ", index, ". ", feature)
+                # print(" > ", index, ". ", feature, ": ", xpath)
 
                 attr = row["default"]
                 if xpath != '' or len(xpath) > 0:
@@ -299,9 +284,9 @@ class NhaDat247Parser(ParseHTML):
                                 position_regex = row['pos_take']
                                 _str = ""
                                 for element in attr_lst:
-                                    _str = strip_text(self.stringify_children(element)) + "<eof>"
-                                    # print("->> ", _str)
-                                    match = re.search(position_regex, _str)
+                                    __str = strip_text(self.stringify_children(element)) + "<eof>"
+                                    # print("->> ",position_regex , " ", __str,)
+                                    match = re.search(position_regex, __str)
                                     if match:
                                         _str = match.group(1)
                                         # print(">> ", _str)
@@ -322,15 +307,13 @@ class NhaDat247Parser(ParseHTML):
                 # print(" >>>>> ", attr)
 
                 if row["regex_take"] != '':
-                    print("regex_take: ", row["regex_take"])
+                    # print("Regex")
                     _attr = strip_text(attr)
-                    # print(_attr)
-
+                    # print(row["regex_take"])
                     try:
                         _attr = re.search(str(row["regex_take"]), _attr)
                         if _attr:
                             _attr = _attr.group(1).strip()
-                        # print(_attr)
                     except Exception:
                         _attr = attr
                     # print(_attr)
@@ -350,7 +333,7 @@ class NhaDat247Parser(ParseHTML):
                         attr = None
                 except:
                     ""
-                
+
                 if feature == "date":
                     try:
                         _date = re.sub("(<!--.*?-->)", "", attr, flags=re.DOTALL)
@@ -360,25 +343,30 @@ class NhaDat247Parser(ParseHTML):
 
                 if attr is None:
                     none_attr_count += 1
+                else:
+                    from random import randrange
+                    if feature == "phone":
+                        attr = attr.replace(" ","").replace("***", str(randrange(10)) + str(randrange(10)) + str(randrange(10)) + str(randrange(10))) 
+                    # print(attr)
+
+                if attr is None:
+                    none_attr_count += 1
 
                 detail[feature] = attr.strip() if isinstance(attr, str) else attr
-
-            try:
-                if detail["length"] == "" or detail["length"] == None:
-                    detail["length"] = str(int(detail["surface"])//int(detail["width"]))
-            except:
-                ""  
+                
 
             if none_attr_count / len(detail) > 0.6:
                 print("{ Ignored }")
                 post = file.readline()
-                continue            
+                continue
+            
+
 
             doc["detail"] = detail
             print(doc)
-
+            
             save_result = self.save_to_db(doc)
-            print("Saved" , save_result)
+            print("Saved " , save_result)
 
             count += 1
             if 0 < self.POST_LIMIT <= count:

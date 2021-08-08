@@ -29,7 +29,6 @@ from selenium.common.exceptions import ElementClickInterceptedException
 import selenium.common.exceptions
 from selenium.webdriver import ActionChains
 
-from crawl import CrawlHTML
 
 def soup_from_html(html):
     if html == None or len(html) < 10 :
