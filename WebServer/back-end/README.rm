@@ -2,10 +2,5 @@ python manage.py makemigrations Workers
 python manage.py migrate Workers
 python manage.py runserver
 
-worker01 win-pass: GCfR)uQlYY(-6&Ok)TE3zDn6VSsuhzmg
-worker02 win-pass: $6LP*OyDf3TCB9ycgiM%axwmQse;rs=;
-worker04 win-pass: xLIcRj*%jW($PhaT;G?=GN3gYtDFWF;J
-worker03 win-pass: HCau.sT=p9MVh4U.4*;VE26Gt6?.FASA
-worker05 win-pass: 
 pip install django-cors-headers
 pip install djangorestframework
